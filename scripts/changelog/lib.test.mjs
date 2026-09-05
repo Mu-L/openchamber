@@ -4,9 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { loadReleases, parseRelease, promoteUnreleased, renderAppChangelog, renderIndex, renderVsCodeChangelog } from './lib.mjs';
+import { loadReleases, parseRelease, promoteUnreleased, renderAppChangelog, renderIndex, renderOutputs, renderReleaseNotes, renderVsCodeChangelog } from './lib.mjs';
 
-const banner = '<!-- Generated from changelog/*.md by `bun run changelog:build`. Edit those files, not this one. -->';
+const banner = '<!-- Generated from changelog/*.md by `oc-dev create-release`. Edit those files, not this one. -->';
 
 const release = `---
 version: 1.2.3
@@ -51,26 +51,16 @@ test('rejects shapes the generator cannot render', () => {
   assert.throws(() => parseRelease('---\nversion: 1.2\ndate: 2026-01-31\n---\n', 'f.md'), /is not x\.y\.z/);
 });
 
-test('renders groups in canonical order with today\'s headers and skips versions without a VS Code section', () => {
+test('renders released versions only, groups in canonical order, and skips versions without a VS Code section', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'changelog-'));
   fs.writeFileSync(path.join(directory, '1.2.3.md'), release);
   fs.writeFileSync(path.join(directory, '1.2.4.md'), '---\nversion: 1.2.4\ndate: 2026-02-01\ntitle: Faster\n---\n\n## App\n\n### Improvements\n- Faster.\n');
-  fs.writeFileSync(path.join(directory, 'unreleased.md'), '## App\n\n### Fixes\n- Pending fix.\n\n## VS Code\n');
+  fs.writeFileSync(path.join(directory, 'unreleased.md'), '---\ntitle: Pending\n---\n\n## App\n\n### Fixes\n- Pending fix.\n\n## VS Code\n');
   const loaded = loadReleases(directory);
 
-  assert.equal(renderAppChangelog(loaded), `# Changelog
-
-${banner}
-
-All notable changes to this project will be documented in this file.
-
-## [Unreleased]
-
-### Fixes
-
-- Pending fix.
-
-## [1.2.4] - 2026-02-01
+  const app = renderAppChangelog(loaded);
+  assert.match(app, /^# Changelog\n\n<!-- Legacy copy for app versions up to 1\.22\.1/);
+  assert.equal(app.slice(app.indexOf('## [1.2.4]')), `## [1.2.4] - 2026-02-01
 
 ### Improvements
 
@@ -88,10 +78,9 @@ A short intro.
 
 - Chat: huge patches open without freezing the page (thanks to @someone).
 `);
+  assert.equal(app.includes('Unreleased'), false);
 
   assert.equal(renderVsCodeChangelog(loaded), `${banner}
-
-## [Unreleased]
 
 ## [1.2.3] - 2026-01-31
 
@@ -100,12 +89,26 @@ A short intro.
 - Comments on code.
 `);
 
+  assert.equal(renderReleaseNotes(loaded.releases[1]), `A short intro.
+
+### New
+
+- **Comments:** select text and comment on it.
+
+### Fixes
+
+- Chat: huge patches open without freezing the page (thanks to @someone).
+`);
+
   const index = JSON.parse(renderIndex(loaded));
   assert.equal(index.length, 2);
   assert.equal(index[0].version, '1.2.4');
   assert.equal(index[1].title, 'Comments everywhere');
   assert.deepEqual(index[1].vscode, { new: ['Comments on code.'], improvements: [], fixes: [], misc: [] });
   assert.equal(index[0].vscode, null);
+
+  assert.deepEqual(Object.keys(renderOutputs(loaded)), ['packages/vscode/CHANGELOG.md', 'changelog/index.json']);
+  assert.deepEqual(Object.keys(renderOutputs(loaded, { legacyAppChangelog: true })), ['CHANGELOG.md', 'packages/vscode/CHANGELOG.md', 'changelog/index.json']);
 });
 
 test('loadReleases refuses a file whose name and version disagree, and a release without a title', () => {

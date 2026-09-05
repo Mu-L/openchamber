@@ -175,7 +175,9 @@ function step(label, fn) {
 }
 
 // The release notes source plus the files generated from it; all go into the release commit.
-const RELEASE_CHANGELOG_FILES = ['changelog', 'CHANGELOG.md', 'packages/vscode/CHANGELOG.md'];
+// CHANGELOG.md is legacy (older installs read it for update notes); it is
+// refreshed only while it exists.
+const RELEASE_CHANGELOG_FILES = ['changelog', 'packages/vscode/CHANGELOG.md', ...(fs.existsSync('CHANGELOG.md') ? ['CHANGELOG.md'] : [])];
 
 function printReleaseNextSteps(version) {
   log.success(`Release v${version} prepared locally`);
@@ -602,7 +604,7 @@ async function createRelease(options) {
   }
   if (!/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/.test(version)) throw new Error('Invalid version format. Use semver, e.g. 1.4.7 or 1.4.7-beta.1');
   // Turns changelog/unreleased.md into changelog/<version>.md dated today and
-  // regenerates CHANGELOG.md; fails when nothing was written for the release.
+  // regenerates the outputs; fails when nothing was written for the release.
   step('Promoting the changelog', () => run('node', ['scripts/changelog/build.mjs', '--release', version]));
   step('Validating codebase', () => run('bun', ['run', 'release:prepare']));
   step(`Bumping version to ${version}`, () => run('node', ['scripts/bump-version.mjs', version]));

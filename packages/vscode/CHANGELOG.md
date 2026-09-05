@@ -1,6 +1,4 @@
-<!-- Generated from changelog/*.md by `bun run changelog:build`. Edit those files, not this one. -->
-
-## [Unreleased]
+<!-- Generated from changelog/*.md by `oc-dev create-release`. Edit those files, not this one. -->
 
 ## [1.22.1] - 2026-09-04
 

@@ -1,15 +1,15 @@
 ---
 name: changelog-authoring
-description: Use only when the maintainer explicitly asks to update the changelog — then draft the OpenChamber `[Unreleased]` entries (main app and VS Code extension) summarizing changes since the latest git tag.
+description: Use only when the maintainer explicitly asks to update the changelog — then write `changelog/unreleased.md` (main app and VS Code extension) summarizing changes since the latest git tag.
 license: MIT
 compatibility: opencode
 ---
 
 ## Gate
 
-The changelog is written once per release, by the maintainer, as one story. Both `CHANGELOG.md` files stay untouched by every other task; a fix or a merged PR lands without a changelog line. Proceed only when the current message asks to update the changelog.
+The changelog is written once per release, by the maintainer, as one story. `changelog/` stays untouched by every other task; a fix or a merged PR lands without a changelog line. Proceed only when the current message asks to update the changelog.
 
-Write `changelog/unreleased.md` and nothing else. `CHANGELOG.md`, `packages/vscode/CHANGELOG.md`, and `changelog/index.json` are generated from `changelog/*.md`; after editing run `bun run changelog:build` and commit the source with the regenerated files (`changelog/README.md` describes the file format, `bun run changelog:check` verifies the outputs). The version header, date, and file promotion happen at release time through `oc-dev create-release`, never by hand.
+Write `changelog/unreleased.md` and nothing else. Generation is not your job: `oc-dev create-release` turns the file into `changelog/<version>.md` with the date and renders `packages/vscode/CHANGELOG.md` and `changelog/index.json` from it. Never run the generator or touch those files. `bun run changelog:check` only validates the shape of what you wrote and writes nothing; `changelog/README.md` describes the format.
 
 `unreleased.md` opens with a `title:` front matter line (see The title) and holds two sections:
 
@@ -42,7 +42,7 @@ Where a change goes:
 - **Fixes** — something was broken and showed a wrong result; the bullet names the symptom.
 - **Misc** — bundled tool versions, packaging, platform support, retirements. Rarely more than a few lines.
 
-The generator emits the groups in this order whatever order the source lists them, drops empty ones, and writes the `## [x.y.z] - YYYY-MM-DD` header that the update dialog, the release workflow, and the website match by regex.
+The generator emits the groups in this order whatever order the source lists them and drops empty ones; version, date, and headers are its concern, not yours.
 
 ## The title
 
@@ -53,7 +53,7 @@ Every release carries a one-line `title:` in its front matter. The website lists
 - **Never a category alone** (`Fixes`, `Stability`, `Improvements`, `Polish`) and **never a bare area** (`Git`, `Chat`): the title has to teach the reader something.
 - Two headliners at most, joined with `and`, and only when the release really has two.
 
-The generator refuses a release without a title. In `unreleased.md` it sits at the top:
+`oc-dev create-release` refuses a release without a title. In `unreleased.md` it sits at the top:
 
 ```markdown
 ---
@@ -126,4 +126,4 @@ Read each finished section top to bottom and check every bullet:
 - It appears only in the section whose runtime receives it.
 - Its contributor is credited.
 - The `title:` line names the release's headline change in two to six plain words.
-- `bun run changelog:build` ran and the regenerated files are staged with the source.
+- `bun run changelog:check` passes; nothing else in the repo changed.

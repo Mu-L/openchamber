@@ -1,6 +1,6 @@
 # Release notes source
 
-One file per release, plus `unreleased.md` for what has not shipped. `bun run changelog:build` renders `CHANGELOG.md` (app), `packages/vscode/CHANGELOG.md` (extension, shown by the Marketplace as is), and `index.json` (for the website). Edit the files here; the generated ones are overwritten.
+One file per release, plus `unreleased.md` for what has not shipped. At release time `oc-dev create-release` turns `unreleased.md` into `<version>.md` with today's date and renders `packages/vscode/CHANGELOG.md` (extension, shown by the Marketplace as is) and `index.json` (website and the app's update dialog) from the released files. Edit the files here; the generated ones are overwritten and hold released versions only, so editing `unreleased.md` never leaves them stale.
 
 ```markdown
 ---
@@ -33,6 +33,8 @@ Optional intro paragraph shown above the groups.
 
 Groups may appear in any order in a source file; the generator emits them as New, Improvements, Fixes, Misc and drops empty ones. A release without a `## VS Code` section is absent from the extension changelog. Every release needs a `title`; `unreleased.md` carries only the `title` line in its front matter and gets `version` and `date` at release time.
 
-`bun run changelog:check` fails when the generated files are behind their sources; CI runs it. `oc-dev create-release` promotes `unreleased.md` to `<version>.md` with today's date and rebuilds.
+`bun run changelog:check` validates every source file and fails when a generated file is behind the released sources; CI runs it. It writes nothing.
+
+`CHANGELOG.md` at the repo root is legacy: app versions up to 1.22.1 fetch it from `main` for their update notes. It is refreshed while it exists and never recreated; delete it after 2026-09-19 and it is gone for good.
 
 How to write the title and the bullets lives in `.agents/skills/changelog-authoring/SKILL.md`.

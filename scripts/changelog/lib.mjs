@@ -1,19 +1,21 @@
 // Source of truth for release notes: one Markdown file per release under
 // `changelog/`, plus `changelog/unreleased.md` for what is not shipped yet.
 // This module parses those files, validates their shape, and renders the
-// three generated outputs: `CHANGELOG.md` (app), `packages/vscode/CHANGELOG.md`
-// (extension, read by the Marketplace as is), and `changelog/index.json`.
+// generated outputs: `packages/vscode/CHANGELOG.md` (extension, read by the
+// Marketplace as is) and `changelog/index.json` (website and update dialog).
+// Only released versions are rendered; `unreleased.md` is read straight from
+// the source by whoever needs it, so editing it never makes an output stale.
 //
-// The generated Markdown keeps today's `## [x.y.z] - YYYY-MM-DD` headers: the
-// update dialog, the release workflow, and the release script match them by
-// regex. Groups render as `### New` / `### Improvements` / `### Fixes` /
-// `### Misc` inside each release.
+// `CHANGELOG.md` is legacy: app versions up to 1.22.1 fetch it from `main` for
+// their update notes. It is refreshed only while it exists and is never
+// recreated, so deleting it retires it for good.
 
 import fs from 'node:fs';
 import path from 'node:path';
 
 export const GROUPS = ['New', 'Improvements', 'Fixes', 'Misc'];
-const GENERATED_BANNER = '<!-- Generated from changelog/*.md by `bun run changelog:build`. Edit those files, not this one. -->';
+const GENERATED_BANNER = '<!-- Generated from changelog/*.md by `oc-dev create-release`. Edit those files, not this one. -->';
+const LEGACY_BANNER = '<!-- Legacy copy for app versions up to 1.22.1, which fetch this file for their update notes. Generated from changelog/*.md while it exists; delete it after 2026-09-19 and nothing will recreate it. -->';
 export const SURFACES = ['App', 'VS Code'];
 
 const VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
@@ -172,23 +174,20 @@ const renderSection = (release, groups, intro) => {
   return parts.join('\n').replace(/\n+$/, '\n');
 };
 
-/** `CHANGELOG.md`: the app notes, unreleased first, every release after. */
-export const renderAppChangelog = ({ unreleased, releases }) => {
-  const sections = [];
-  sections.push(renderSection(unreleased ?? { version: null }, unreleased?.app, unreleased?.intro ?? []));
-  for (const release of releases) sections.push(renderSection(release, release.app, release.intro));
-  return `# Changelog\n\n${GENERATED_BANNER}\n\nAll notable changes to this project will be documented in this file.\n\n${sections.join('\n')}`;
-};
+/** `CHANGELOG.md` (legacy): every released version's app notes. */
+export const renderAppChangelog = ({ releases }) =>
+  `# Changelog\n\n${LEGACY_BANNER}\n\n${releases.map((release) => renderSection(release, release.app, release.intro)).join('\n')}`;
 
 /** `packages/vscode/CHANGELOG.md`: only releases that carry a VS Code section. */
-export const renderVsCodeChangelog = ({ unreleased, releases }) => {
-  const sections = [];
-  sections.push(renderSection(unreleased ?? { version: null }, unreleased?.vscode, []));
-  for (const release of releases) {
-    if (!release.vscode) continue;
-    sections.push(renderSection(release, release.vscode, []));
-  }
-  return `${GENERATED_BANNER}\n\n${sections.join('\n')}`;
+export const renderVsCodeChangelog = ({ releases }) =>
+  `${GENERATED_BANNER}\n\n${releases.filter((release) => release.vscode).map((release) => renderSection(release, release.vscode, [])).join('\n')}`;
+
+/** GitHub Release body for one release: intro and groups, no version header. */
+export const renderReleaseNotes = (release) => {
+  const parts = [];
+  if (release.intro.length > 0) parts.push(release.intro.join('\n'), '');
+  parts.push(renderGroups(release.app));
+  return `${parts.join('\n').trim()}\n`;
 };
 
 const groupsToJson = (groups) => {
@@ -208,12 +207,18 @@ export const renderIndex = ({ releases }) => `${JSON.stringify(releases.map((rel
   vscode: groupsToJson(release.vscode),
 })), null, 2)}\n`;
 
-/** Every generated file, keyed by path relative to the repo root. */
-export const renderOutputs = (loaded) => ({
-  'CHANGELOG.md': renderAppChangelog(loaded),
-  'packages/vscode/CHANGELOG.md': renderVsCodeChangelog(loaded),
-  'changelog/index.json': renderIndex(loaded),
-});
+/**
+ * Every generated file, keyed by path relative to the repo root. The legacy
+ * `CHANGELOG.md` is included only on request (the build passes whether the
+ * file still exists).
+ */
+export const renderOutputs = (loaded, { legacyAppChangelog = false } = {}) => {
+  const outputs = {};
+  if (legacyAppChangelog) outputs['CHANGELOG.md'] = renderAppChangelog(loaded);
+  outputs['packages/vscode/CHANGELOG.md'] = renderVsCodeChangelog(loaded);
+  outputs['changelog/index.json'] = renderIndex(loaded);
+  return outputs;
+};
 
 export const UNRELEASED_TEMPLATE = `---
 title:
