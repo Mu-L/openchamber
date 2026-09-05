@@ -190,3 +190,17 @@ resolves `$XDG_CONFIG_HOME/opencode` at extension startup, falling back to
 No files are migrated. The behavior GET bridge response includes the effective
 `path` for both existing and missing AGENTS.md files; shared Settings uses it
 in the warning.
+
+## Extension localization
+
+Two bundles carry extension-host text: `package.nls*.json` for the manifest
+`%token%` strings and `l10n/bundle.l10n*.json` for the `t(...)` call sites.
+Every locale file must cover the full English key set with the same `{0}`
+placeholders — VS Code silently falls back to English per missing key, so a
+half-translated locale looks like a shipped feature. `localizationBundles.test.ts`
+enforces that, and it is the check to run whenever a feature adds a new string.
+
+The pre-bundle loading splash in `webviewHtml.ts` is separate: its strings are
+inlined in the generated HTML and chosen from OpenChamber's own saved locale
+(`openchamber.i18n.v1` in webview localStorage), not from VS Code's display
+language, because the splash renders before the webview bundle loads.
