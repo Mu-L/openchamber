@@ -10,6 +10,7 @@ import {
   upsertProviderConfig,
   validateCustomProviderConfig,
 } from './opencodeConfig';
+import { OPENCODE_CONFIG_DIR } from './opencodeConfigPaths';
 
 let projectDir: string;
 
@@ -377,8 +378,8 @@ describe('custom provider config persistence (VS Code parity)', () => {
     assert.equal(sources.custom.exists, false);
 
     for (const userPath of [
-      path.join(os.homedir(), '.config', 'opencode', 'opencode.json'),
-      path.join(os.homedir(), '.config', 'opencode', 'config.json'),
+      path.join(OPENCODE_CONFIG_DIR, 'opencode.json'),
+      path.join(OPENCODE_CONFIG_DIR, 'config.json'),
     ]) {
       if (!fs.existsSync(userPath)) continue;
       const userConfig = readJson(userPath);
@@ -416,8 +417,8 @@ describe('custom provider config persistence (VS Code parity)', () => {
       assert.equal(sources.project.exists, false);
 
       for (const userPath of [
-        path.join(os.homedir(), '.config', 'opencode', 'opencode.json'),
-        path.join(os.homedir(), '.config', 'opencode', 'config.json'),
+        path.join(OPENCODE_CONFIG_DIR, 'opencode.json'),
+        path.join(OPENCODE_CONFIG_DIR, 'config.json'),
       ]) {
         if (!fs.existsSync(userPath)) continue;
         const userConfig = readJson(userPath);
