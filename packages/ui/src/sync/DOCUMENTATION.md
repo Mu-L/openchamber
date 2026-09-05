@@ -339,6 +339,26 @@ feedback stays truthful.
 Callers whose confirmation can span a runtime switch may pass an
 `expectedRuntimeKey` captured earlier; ordinary callers are guarded by default.
 
+When the session being restored belongs to a worktree that no longer exists,
+writing `time.archived = 0` alone would leave it grouped under a directory the
+sidebar can never surface. Restore therefore probes the session's owned
+directory with `getDirectoryAvailability` and, only on an exact `missing`
+result, relocates it: it resolves the owning OpenCode project's primary
+directory by the session's server `projectID` (from `project.list()`, never a
+local project ID or the active project), then unarchives and moves the whole
+subtree still stranded in the missing directory to that project directory
+through `moveSessionToDirectory(..., false)`. `available`, `unknown`, an
+availability probe failure, a missing project record, and non-worktree sessions
+keep the plain restore path. The subtree is drawn from the global cache so
+archived descendants that never materialized in a live child store are still
+relocated, and a node is kept while it is archived **or** still owns the
+missing directory, so a retry after a partial restore (root already unarchived
+but not yet moved) completes the move instead of reporting a false success.
+`moveSessionToDirectory` accepts the captured `expectedRuntimeKey` and skips all
+local store/routing publication when the runtime changed during the
+control-plane request, so the server move can complete without seeding the new
+runtime with stale directory state.
+
 Deletion needs this guard more than archiving does. Session IDs are not unique
 across runtimes, and a committed deletion does more than hide a row: it evicts
 the session from every live store, removes it from the global cache, clears the
