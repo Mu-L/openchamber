@@ -30,6 +30,12 @@ type LineCommentPayload = {
 type SessionPanelState = {
   /** This panel's id, which is also its surface identity for comment threads. */
   id: string;
+  /**
+   * The session this panel was opened for; null for a new-session panel. A
+   * comment delivered here names it, so the webview files the draft under that
+   * session's key rather than whatever it shows while still booting.
+   */
+  sessionId: string | null;
   panel: vscode.WebviewPanel;
   sseStreams: Map<string, AbortController>;
   /**
@@ -148,6 +154,7 @@ export class SessionEditorPanelProvider {
 
     const state: SessionPanelState = {
       id: panelId,
+      sessionId: initialSessionId,
       panel,
       sseStreams: new Map(),
       pendingLineComments: [],
@@ -183,7 +190,7 @@ export class SessionEditorPanelProvider {
         void panel.webview.postMessage({
           type: 'command',
           command: 'addLineComment',
-          payload: pending,
+          payload: { ...pending, targetSessionId: state.sessionId ?? undefined },
         });
       }
 
@@ -363,7 +370,7 @@ export class SessionEditorPanelProvider {
     void entry.panel.webview.postMessage({
       type: 'command',
       command: 'addLineComment',
-      payload,
+      payload: { ...payload, targetSessionId: entry.sessionId ?? undefined },
     });
     return entry.id;
   }

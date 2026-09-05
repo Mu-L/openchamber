@@ -1,5 +1,6 @@
 import { createVSCodeAPIs } from './api';
 import { createRemovalTombstones } from './inlineCommentRemovals';
+import { resolveCommentTarget } from './inlineCommentTarget';
 import { onCommand, onThemeChange, postBridgeNotification, proxyApiRequest, proxySessionMessageRequest, sendBridgeMessage, startSseProxy, stopSseProxy } from './api/bridge';
 import { vscodeStreamPerfCount, vscodeStreamPerfMeasure, vscodeStreamPerfObserve } from './api/streamPerf';
 import { extractBodyBase64, extractBodyText, extractJsonBody, hasInitBody } from './requestBodyTransport';
@@ -1348,11 +1349,15 @@ onCommand('addLineComment', (payload) => {
     code?: unknown;
     language?: unknown;
     comment?: unknown;
+    targetSessionId?: unknown;
   };
 
   // The editor thread mints the id so it can track its own draft without a
   // round trip. Absent when the comment came from anywhere else.
   const draftId = typeof record.draftId === 'string' && record.draftId ? record.draftId : undefined;
+  // A session panel is told which session the comment is for, so it can wait
+  // until it actually shows that session. The sidebar files wherever it is.
+  const targetSessionId = typeof record.targetSessionId === 'string' && record.targetSessionId ? record.targetSessionId : undefined;
   const relativePath = typeof record.relativePath === 'string' ? record.relativePath : '';
   const source = record.source === 'diff' ? 'diff' : 'file';
   const side = record.side === 'original' || record.side === 'modified' ? record.side : undefined;
@@ -1379,27 +1384,30 @@ onCommand('addLineComment', (payload) => {
     // reads. Directory precedence matches the composer's own.
     const resolveTarget = () => {
       const sessionState = useSessionUIStore.getState();
-      const currentSessionId = sessionState.currentSessionId;
-      const sessionDirectory = currentSessionId ? sessionState.getDirectoryForSession(currentSessionId) : null;
-      const draftDirectory = sessionState.newSessionDraft?.open
-        ? sessionState.newSessionDraft.bootstrapPendingDirectory ?? sessionState.newSessionDraft.directoryOverride ?? null
-        : null;
-      const directory = sessionDirectory ?? draftDirectory ?? useDirectoryStore.getState().currentDirectory;
-      return directory ? { directory, sessionKey: currentSessionId ?? 'draft' } : null;
+      const currentSessionId = sessionState.currentSessionId ?? null;
+      const draft = sessionState.newSessionDraft;
+      return resolveCommentTarget({
+        currentSessionId,
+        sessionDirectory: currentSessionId ? sessionState.getDirectoryForSession(currentSessionId) ?? null : null,
+        draftOpen: Boolean(draft?.open),
+        draftDirectory: draft?.open ? draft.bootstrapPendingDirectory ?? draft.directoryOverride ?? null : null,
+        currentDirectory: useDirectoryStore.getState().currentDirectory ?? null,
+      }, targetSessionId);
     };
 
-    // A comment can arrive before the chat surface has finished booting: the
-    // extension opens the sidebar and posts after a fixed delay, which a cold
-    // webview can outlast. Dropping the draft here loses a comment the user
-    // already wrote and already saw accepted in the editor, so wait for the
-    // target to land instead.
+    // A comment can arrive before the chat surface shows its session: a panel
+    // opened for the comment knows its directory long before the session list
+    // has loaded and the session is selected. Filing before that put the draft
+    // under a key this composer never reads. Wait for the surface to land on
+    // the session (or an open draft) instead, within the extension's own
+    // confirmation deadline.
     let target = resolveTarget();
-    for (let attempt = 0; !target && attempt < 40; attempt += 1) {
+    for (let attempt = 0; !target && attempt < 80; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 250));
       target = resolveTarget();
     }
     if (!target) {
-      console.warn('[openchamber] no directory resolved; dropping inline comment', { relativePath, startLine });
+      console.warn('[openchamber] chat surface never showed the session; dropping inline comment', { relativePath, startLine, targetSessionId });
       return;
     }
 
