@@ -81,7 +81,9 @@ make every row observe unrelated streaming updates.
 
 `SidebarTerminalActivity` shares terminal discovery with the action header and terminal
 panel while the sidebar is visible. One server listing covers all directories, including
-collapsed projects. It preserves local mutations newer than the listing and keeps known
+collapsed projects. The sidebar keeps that loop running only while a project action is
+known to be running anywhere; with nothing running it lists once on mount, to pick up
+runs another client started, and then stays quiet so an idle sidebar costs no polling. It preserves local mutations newer than the listing and keeps known
 state on failure. Terminal discovery is separate from OpenCode session bootstrap.
 
 `DirectoryActionIndicator` reads only its directory's terminal metadata. Output chunks and

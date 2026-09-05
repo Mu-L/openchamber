@@ -2,15 +2,29 @@ import React from 'react';
 import { useRuntimeAPIs } from '@/hooks/useRuntimeAPIs';
 import { groupTerminalSessionsByDirectory } from '@/lib/projectActionTerminal';
 import { observeTerminalSessions } from '@/lib/terminalSessionObserver';
-import { useTerminalStore } from '@/stores/useTerminalStore';
+import { isActiveProjectActionTab, useTerminalStore } from '@/stores/useTerminalStore';
 
-/** Mounted with the visible sidebar, independently of row count and grouping. */
+const selectHasActiveProjectAction = (state: ReturnType<typeof useTerminalStore.getState>): boolean => {
+  for (const directory of state.sessions.values()) {
+    if (directory.tabs.some(isActiveProjectActionTab)) return true;
+  }
+  return false;
+};
+
+/**
+ * Mounted with the visible sidebar, independently of row count and grouping.
+ *
+ * The listing loop runs only while a project action is known to be running,
+ * because that is the only time the indicator can change on its own. With
+ * nothing running the sidebar lists once on mount, to pick up runs another
+ * client started, and then stays quiet; the terminal panel and the actions
+ * header keep their own loops while open.
+ */
 export const SidebarTerminalActivity = () => {
   const { terminal } = useRuntimeAPIs();
-  React.useEffect(() => observeTerminalSessions(
-    terminal, '',
-    () => new Map(useTerminalStore.getState().actionMutationRevisions),
-    result => {
+  const hasActiveProjectAction = useTerminalStore(selectHasActiveProjectAction);
+  React.useEffect(() => {
+    const apply = (result: Parameters<Parameters<typeof observeTerminalSessions>[3]>[0]) => {
       const store = useTerminalStore.getState();
       const byDirectory = groupTerminalSessionsByDirectory(result.sessions);
       const directories = new Set([...store.sessions.keys(), ...byDirectory.keys()]);
@@ -19,7 +33,15 @@ export const SidebarTerminalActivity = () => {
           startedActionMutationRevisions: result.startedActionMutationRevisions,
         });
       }
-    },
-  ), [terminal]);
+    };
+    const capture = () => new Map(useTerminalStore.getState().actionMutationRevisions);
+    if (hasActiveProjectAction) return observeTerminalSessions(terminal, '', capture, apply);
+    let stop = () => {};
+    stop = observeTerminalSessions(terminal, '', capture, (result) => {
+      apply(result);
+      stop();
+    });
+    return () => stop();
+  }, [terminal, hasActiveProjectAction]);
   return null;
 };
