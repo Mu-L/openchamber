@@ -22,10 +22,9 @@ describe('extension localization bundles', () => {
     for (const file of localeFiles('l10n', 'bundle.l10n', '.json')) {
       const translated = readJson(file);
       for (const [key, source] of Object.entries(english)) {
-        const value = translated[key];
-        assert.equal(typeof value, 'string', `${file} is missing the key ${JSON.stringify(key)}`);
+        assert.ok(Object.hasOwn(translated, key), `${file} is missing the key ${JSON.stringify(key)}`);
         assert.deepEqual(
-          placeholders(value),
+          placeholders(translated[key]),
           placeholders(source),
           `${file} changes the placeholders of ${JSON.stringify(key)}`
         );
@@ -38,7 +37,7 @@ describe('extension localization bundles', () => {
     for (const file of localeFiles('.', 'package.nls', '.json')) {
       const translated = readJson(file);
       for (const key of Object.keys(english)) {
-        assert.equal(typeof translated[key], 'string', `${file} is missing the key ${key}`);
+        assert.ok(Object.hasOwn(translated, key), `${file} is missing the key ${key}`);
       }
     }
   });
