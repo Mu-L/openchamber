@@ -9,10 +9,12 @@ compatibility: opencode
 
 The changelog is written once per release, by the maintainer, as one story. Both `CHANGELOG.md` files stay untouched by every other task; a fix or a merged PR lands without a changelog line. Proceed only when the current message asks to update the changelog.
 
-Two files, `[Unreleased]` content only, never a new release header:
+Write `changelog/unreleased.md` and nothing else. `CHANGELOG.md`, `packages/vscode/CHANGELOG.md`, and `changelog/index.json` are generated from `changelog/*.md`; after editing run `bun run changelog:build` and commit the source with the regenerated files (`changelog/README.md` describes the file format, `bun run changelog:check` verifies the outputs). The version header, date, and file promotion happen at release time through `oc-dev create-release`, never by hand.
 
-- `CHANGELOG.md` — main app (Web, Desktop, Mobile/PWA, shared UI).
-- `packages/vscode/CHANGELOG.md` — VS Code extension only.
+`unreleased.md` holds two sections:
+
+- `## App` — Web, Desktop, Mobile/PWA, shared UI.
+- `## VS Code` — the extension only, written separately (see below).
 
 ## The shape of a release
 
@@ -40,7 +42,7 @@ Where a change goes:
 - **Fixes** — something was broken and showed a wrong result; the bullet names the symptom.
 - **Misc** — bundled tool versions, packaging, platform support, retirements. Rarely more than a few lines.
 
-The `## [x.y.z] - YYYY-MM-DD` header line stays exactly that; the app's update dialog, the release workflow, and the release script match it by regex. The `###` group headings inside it render on GitHub and in the app, and the website flattens them to bullets until it learns to group.
+The generator emits the groups in this order whatever order the source lists them, drops empty ones, and writes the `## [x.y.z] - YYYY-MM-DD` header that the update dialog, the release workflow, and the website match by regex.
 
 ## The bullet
 
@@ -61,7 +63,7 @@ Worked example, same change:
 
 The weak version is accurate and lost the reader at the first comma. The good version keeps the three things a user notices and drops the mechanics that explain them.
 
-Load `.agents/skills/communication-style/SKILL.md` and run its pattern scan over the finished lists; its rules on em dashes, hedging, and puffery apply here unchanged.
+Load `.agents/skills/communication-style/SKILL.md` and run its pattern scan over the finished sections; its rules on em dashes, hedging, and puffery apply here unchanged.
 
 ## Gather
 
@@ -86,9 +88,9 @@ Gathering is complete when every user-visible change has evidence, a known platf
 - A change that is both a feature and a fix (a reworked area) gets one bullet in the group that describes what the user gains most; a second bullet only when the two halves are things a user would look for separately.
 - Rank each changelog on its own; a main-app highlight is not automatically a VS Code highlight.
 
-## VS Code changelog
+## VS Code section
 
-An entry belongs here only when the extension actually mounts the surface: trace from `packages/vscode/webview/main.tsx` → `VSCodeApp` → `VSCodeLayout`, which mounts a subset of the shared UI, and read the surface map in `packages/vscode/src/DOCUMENTATION.md`. Server-side changes have no entry here; the extension runs no OpenChamber server. Prefixes drop the `VS Code:` part. When reachability is uncertain, leave the entry out; a false entry becomes a bug report.
+An entry belongs here only when the extension actually mounts the surface: trace from `packages/vscode/webview/main.tsx` → `VSCodeApp` → `VSCodeLayout`, which mounts a subset of the shared UI, and read the surface map in `packages/vscode/src/DOCUMENTATION.md`. Server-side changes have no entry here; the extension runs no OpenChamber server. Prefixes drop the `VS Code:` part. Bullets are written separately from the App section rather than tagged, so reachability is a decision made per bullet. When reachability is uncertain, leave the entry out; a false entry becomes a bug report.
 
 ## Credit
 
@@ -96,11 +98,12 @@ End the bullet with `(thanks to @username)` using the GitHub login from the PR o
 
 ## Done when
 
-Read each finished list top to bottom and check every bullet:
+Read each finished section top to bottom and check every bullet:
 
 - A user could point at it in the app within five seconds of reading it.
 - It is one or two sentences (three for a highlight) in plain words, with no mechanism and no contrast against the old behaviour.
 - It sits in the group its wording claims (a Fix names a symptom, a New names a capability) and no higher than the bullets above it in impact.
 - Empty groups are absent; present groups appear in the order New, Improvements, Fixes, Misc.
-- It appears only in the changelog whose runtime receives it.
+- It appears only in the section whose runtime receives it.
 - Its contributor is credited.
+- `bun run changelog:build` ran and the regenerated files are staged with the source.

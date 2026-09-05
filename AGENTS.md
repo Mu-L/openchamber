@@ -42,7 +42,7 @@ Shared contracts must define intentional behavior for every applicable runtime: 
 - Do not add dependencies unless explicitly requested.
 - Never add or log secrets, bearer tokens, pairing credentials, or sensitive user data.
 - Keep changes minimal and preserve unrelated worktree changes.
-- `CHANGELOG.md` and `packages/vscode/CHANGELOG.md` are the maintainer's release-time work: they get written once, as one story, when the maintainer asks to update the changelog. Until that request, treat both files as read-only — a fix, feature, or merged PR lands without a changelog line.
+- Release notes are the maintainer's release-time work: they get written once, as one story, in `changelog/unreleased.md` when the maintainer asks to update the changelog. Until that request, treat `changelog/` as read-only — a fix, feature, or merged PR lands without a changelog line. `CHANGELOG.md`, `packages/vscode/CHANGELOG.md`, and `changelog/index.json` are generated from `changelog/*.md` by `bun run changelog:build`; never edit them by hand.
 - Enforce security and correctness in core/runtime logic, not only UI visibility or prompts.
 - Keep entrypoints and bridges thin; place domain logic in focused owning modules.
 - Update owning documentation when module ownership, contracts, or invariants change.

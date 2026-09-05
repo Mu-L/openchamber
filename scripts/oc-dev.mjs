@@ -174,20 +174,8 @@ function step(label, fn) {
   return result;
 }
 
-const RELEASE_CHANGELOG_FILES = ['CHANGELOG.md', 'packages/vscode/CHANGELOG.md'];
-
-// Same check the release workflow runs before it publishes, so a missing
-// section fails here in seconds instead of after the tag is pushed.
-function assertChangelogSection(version) {
-  const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
-  if (!existsSync(changelogPath)) {
-    throw new Error('CHANGELOG.md not found; add it before releasing.');
-  }
-  const sections = readFileSync(changelogPath, 'utf8').split(/^## /m);
-  if (!sections.some((section) => section.startsWith(`[${version}]`))) {
-    throw new Error(`CHANGELOG.md has no "## [${version}] - YYYY-MM-DD" section. Add it before releasing.`);
-  }
-}
+// The release notes source plus the files generated from it; all go into the release commit.
+const RELEASE_CHANGELOG_FILES = ['changelog', 'CHANGELOG.md', 'packages/vscode/CHANGELOG.md'];
 
 function printReleaseNextSteps(version) {
   log.success(`Release v${version} prepared locally`);
@@ -613,7 +601,9 @@ async function createRelease(options) {
     }
   }
   if (!/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/.test(version)) throw new Error('Invalid version format. Use semver, e.g. 1.4.7 or 1.4.7-beta.1');
-  step('Checking changelog', () => assertChangelogSection(version));
+  // Turns changelog/unreleased.md into changelog/<version>.md dated today and
+  // regenerates CHANGELOG.md; fails when nothing was written for the release.
+  step('Promoting the changelog', () => run('node', ['scripts/changelog/build.mjs', '--release', version]));
   step('Validating codebase', () => run('bun', ['run', 'release:prepare']));
   step(`Bumping version to ${version}`, () => run('node', ['scripts/bump-version.mjs', version]));
   printReleaseNextSteps(version);
