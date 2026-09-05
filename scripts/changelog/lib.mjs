@@ -139,6 +139,7 @@ export const loadReleases = (directory) => {
     }
     const stem = name.slice(0, -3);
     if (!release.version || !release.date) fail(release.file, 1, 'a release file needs version and date in its front matter');
+    if (!release.title) fail(release.file, 1, 'a release file needs a title in its front matter (two to six words naming its headline change)');
     if (release.version !== stem) fail(release.file, 1, `version ${release.version} does not match the file name ${stem}`);
     releases.push(release);
   }
@@ -214,15 +215,20 @@ export const renderOutputs = (loaded) => ({
   'changelog/index.json': renderIndex(loaded),
 });
 
-export const UNRELEASED_TEMPLATE = `## App
+export const UNRELEASED_TEMPLATE = `---
+title:
+---
+
+## App
 
 ## VS Code
 `;
 
 /**
- * Turn `unreleased.md` into `<version>.md` dated `date`, and reset
- * `unreleased.md` to the empty template. Refuses an empty unreleased file:
- * a release with nothing to say is a mistake, not a release.
+ * Turn `unreleased.md` into `<version>.md` dated `date`, keeping its title,
+ * and reset `unreleased.md` to the empty template. Refuses an unreleased
+ * file without bullets or without a title: a release with nothing to say,
+ * or nothing to call it, is a mistake, not a release.
  */
 export const promoteUnreleased = (directory, version, date) => {
   if (!VERSION_PATTERN.test(version)) throw new Error(`version ${JSON.stringify(version)} is not x.y.z`);
@@ -234,8 +240,9 @@ export const promoteUnreleased = (directory, version, date) => {
   const release = parseRelease(text, path.relative(process.cwd(), source));
   const bullets = [...Object.values(release.app ?? {}), ...Object.values(release.vscode ?? {})].flat();
   if (bullets.length === 0) throw new Error('changelog/unreleased.md has no bullets; write the release notes before releasing');
+  if (!release.title) throw new Error('changelog/unreleased.md has no title; add a `title:` line to its front matter before releasing');
   const body = text.replace(/^---\n[\s\S]*?\n---\n/, '');
-  fs.writeFileSync(target, `---\nversion: ${version}\ndate: ${date}\n---\n\n${body.replace(/^\n+/, '')}`);
+  fs.writeFileSync(target, `---\nversion: ${version}\ndate: ${date}\ntitle: ${release.title}\n---\n\n${body.replace(/^\n+/, '')}`);
   fs.writeFileSync(source, UNRELEASED_TEMPLATE);
   return target;
 };

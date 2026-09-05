@@ -11,7 +11,7 @@ The changelog is written once per release, by the maintainer, as one story. Both
 
 Write `changelog/unreleased.md` and nothing else. `CHANGELOG.md`, `packages/vscode/CHANGELOG.md`, and `changelog/index.json` are generated from `changelog/*.md`; after editing run `bun run changelog:build` and commit the source with the regenerated files (`changelog/README.md` describes the file format, `bun run changelog:check` verifies the outputs). The version header, date, and file promotion happen at release time through `oc-dev create-release`, never by hand.
 
-`unreleased.md` holds two sections:
+`unreleased.md` opens with a `title:` front matter line (see The title) and holds two sections:
 
 - `## App` — Web, Desktop, Mobile/PWA, shared UI.
 - `## VS Code` — the extension only, written separately (see below).
@@ -43,6 +43,25 @@ Where a change goes:
 - **Misc** — bundled tool versions, packaging, platform support, retirements. Rarely more than a few lines.
 
 The generator emits the groups in this order whatever order the source lists them, drops empty ones, and writes the `## [x.y.z] - YYYY-MM-DD` header that the update dialog, the release workflow, and the website match by regex.
+
+## The title
+
+Every release carries a one-line `title:` in its front matter. The website lists it beside the version and uses it as the heading of the release page, so it is the one line most people read. It answers "what would a user remember this release for":
+
+- **Two to six words** naming the change most users will notice. For a fix-only patch, name what works again: `Terminal works again on Windows`, `Faster session switching`.
+- **Plain words, sentence case**; product names keep their casing. No area prefix with a colon, no trailing period, no version number, no credit.
+- **Never a category alone** (`Fixes`, `Stability`, `Improvements`, `Polish`) and **never a bare area** (`Git`, `Chat`): the title has to teach the reader something.
+- Two headliners at most, joined with `and`, and only when the release really has two.
+
+The generator refuses a release without a title. In `unreleased.md` it sits at the top:
+
+```markdown
+---
+title: Comments on code in VS Code
+---
+
+## App
+```
 
 ## The bullet
 
@@ -106,4 +125,5 @@ Read each finished section top to bottom and check every bullet:
 - Empty groups are absent; present groups appear in the order New, Improvements, Fixes, Misc.
 - It appears only in the section whose runtime receives it.
 - Its contributor is credited.
+- The `title:` line names the release's headline change in two to six plain words.
 - `bun run changelog:build` ran and the regenerated files are staged with the source.

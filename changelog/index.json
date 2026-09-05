@@ -73,7 +73,7 @@
   {
     "version": "1.22.0",
     "date": "2026-08-30",
-    "title": null,
+    "title": "Linear integration and multi-repo git",
     "intro": null,
     "app": {
       "new": [
@@ -112,7 +112,7 @@
   {
     "version": "1.21.1",
     "date": "2026-08-29",
-    "title": null,
+    "title": "Turkish interface and safer worktree moves",
     "intro": null,
     "app": {
       "new": [
@@ -248,7 +248,7 @@
   {
     "version": "1.21.0",
     "date": "2026-08-26",
-    "title": null,
+    "title": "Comments on chat replies and redesigned shortcuts",
     "intro": null,
     "app": {
       "new": [
@@ -336,7 +336,7 @@
   {
     "version": "1.20.0",
     "date": "2026-08-23",
-    "title": null,
+    "title": "Side questions with /btw",
     "intro": null,
     "app": {
       "new": [
@@ -414,7 +414,7 @@
   {
     "version": "1.19.0",
     "date": "2026-08-19",
-    "title": null,
+    "title": "Claude usage limits and project knowledge",
     "intro": null,
     "app": {
       "new": [
@@ -483,7 +483,7 @@
   {
     "version": "1.18.4",
     "date": "2026-08-14",
-    "title": null,
+    "title": "More stable server and correct message order",
     "intro": null,
     "app": {
       "new": [],
@@ -508,7 +508,7 @@
   {
     "version": "1.18.3",
     "date": "2026-08-14",
-    "title": null,
+    "title": "Agents can browse the web",
     "intro": null,
     "app": {
       "new": [
@@ -563,7 +563,7 @@
   {
     "version": "1.18.2",
     "date": "2026-08-10",
-    "title": null,
+    "title": "Observability panel and scheduled tasks",
     "intro": null,
     "app": {
       "new": [
@@ -631,7 +631,7 @@
   {
     "version": "1.18.1",
     "date": "2026-08-04",
-    "title": null,
+    "title": "OAuth provider sign-in works again",
     "intro": null,
     "app": {
       "new": [
@@ -673,7 +673,7 @@
   {
     "version": "1.18.0",
     "date": "2026-08-04",
-    "title": null,
+    "title": "Guided diff walkthroughs",
     "intro": null,
     "app": {
       "new": [
@@ -736,7 +736,7 @@
   {
     "version": "1.17.2",
     "date": "2026-08-01",
-    "title": null,
+    "title": "OpenChamber theme by default",
     "intro": null,
     "app": {
       "new": [
@@ -784,7 +784,7 @@
   {
     "version": "1.17.1",
     "date": "2026-07-29",
-    "title": null,
+    "title": "Live output in Bash tool cards",
     "intro": null,
     "app": {
       "new": [
@@ -828,7 +828,7 @@
   {
     "version": "1.17.0",
     "date": "2026-07-28",
-    "title": null,
+    "title": "Context panel and redesigned sidebar",
     "intro": null,
     "app": {
       "new": [
@@ -885,7 +885,7 @@
   {
     "version": "1.16.3",
     "date": "2026-07-22",
-    "title": null,
+    "title": "Office attachments and faster session switching",
     "intro": null,
     "app": {
       "new": [
@@ -938,7 +938,7 @@
   {
     "version": "1.16.2",
     "date": "2026-07-18",
-    "title": null,
+    "title": "A rebuilt terminal and pinned messages",
     "intro": null,
     "app": {
       "new": [
@@ -983,7 +983,7 @@
   {
     "version": "1.16.1",
     "date": "2026-07-14",
-    "title": null,
+    "title": "Prompt Navigator and a faster sidebar",
     "intro": null,
     "app": {
       "new": [
@@ -1018,7 +1018,7 @@
   {
     "version": "1.16.0",
     "date": "2026-07-13",
-    "title": null,
+    "title": "Session goals and faster remote access",
     "intro": null,
     "app": {
       "new": [
@@ -1084,7 +1084,7 @@
   {
     "version": "1.15.0",
     "date": "2026-07-10",
-    "title": null,
+    "title": "Private relay and a public mobile beta",
     "intro": null,
     "app": {
       "new": [
@@ -1152,7 +1152,7 @@
   {
     "version": "1.14.1",
     "date": "2026-07-07",
-    "title": null,
+    "title": "Recaps and suggested replies in chat",
     "intro": null,
     "app": {
       "new": [
@@ -1194,7 +1194,7 @@
   {
     "version": "1.14.0",
     "date": "2026-07-05",
-    "title": null,
+    "title": "Voice dictation and a compact mobile composer",
     "intro": null,
     "app": {
       "new": [
@@ -1253,7 +1253,7 @@
   {
     "version": "1.13.9",
     "date": "2026-07-02",
-    "title": null,
+    "title": "Native iOS and Android apps arrive",
     "intro": null,
     "app": {
       "new": [
@@ -1289,7 +1289,7 @@
   {
     "version": "1.13.8",
     "date": "2026-06-29",
-    "title": null,
+    "title": "Faster startup and safer OpenCode detection",
     "intro": null,
     "app": {
       "new": [
@@ -1321,7 +1321,7 @@
   {
     "version": "1.13.7",
     "date": "2026-06-28",
-    "title": null,
+    "title": "The update command works again",
     "intro": null,
     "app": {
       "new": [],
@@ -1351,7 +1351,7 @@
   {
     "version": "1.13.6",
     "date": "2026-06-28",
-    "title": null,
+    "title": "A Dock badge for unseen chats",
     "intro": null,
     "app": {
       "new": [
@@ -1379,7 +1379,7 @@
   {
     "version": "1.13.5",
     "date": "2026-06-27",
-    "title": null,
+    "title": "The CLI and tunnels work again",
     "intro": null,
     "app": {
       "new": [],
@@ -1405,7 +1405,7 @@
   {
     "version": "1.13.4",
     "date": "2026-06-27",
-    "title": null,
+    "title": "Automatic review loops",
     "intro": null,
     "app": {
       "new": [
@@ -1449,7 +1449,7 @@
   {
     "version": "1.13.3",
     "date": "2026-06-24",
-    "title": null,
+    "title": "Sign commits with SSH",
     "intro": null,
     "app": {
       "new": [
@@ -1508,7 +1508,7 @@
   {
     "version": "1.13.2",
     "date": "2026-06-18",
-    "title": null,
+    "title": "Smoother streaming in long chats",
     "intro": null,
     "app": {
       "new": [],
@@ -1541,7 +1541,7 @@
   {
     "version": "1.13.1",
     "date": "2026-06-17",
-    "title": null,
+    "title": "Cron expressions for scheduled tasks",
     "intro": null,
     "app": {
       "new": [
@@ -1592,7 +1592,7 @@
   {
     "version": "1.13.0",
     "date": "2026-06-15",
-    "title": null,
+    "title": "Remote access password and diff staging",
     "intro": null,
     "app": {
       "new": [
@@ -1660,7 +1660,7 @@
   {
     "version": "1.12.4",
     "date": "2026-06-11",
-    "title": null,
+    "title": "Menu bar tray and review sessions",
     "intro": null,
     "app": {
       "new": [
@@ -1722,7 +1722,7 @@
   {
     "version": "1.12.3",
     "date": "2026-06-05",
-    "title": null,
+    "title": "Works with OpenCode 1.15 again",
     "intro": null,
     "app": {
       "new": [],
@@ -1747,7 +1747,7 @@
   {
     "version": "1.12.2",
     "date": "2026-06-05",
-    "title": null,
+    "title": "Windows app now available",
     "intro": null,
     "app": {
       "new": [
@@ -1777,7 +1777,7 @@
   {
     "version": "1.12.1",
     "date": "2026-06-03",
-    "title": null,
+    "title": "Changed-file chips in chat",
     "intro": null,
     "app": {
       "new": [
@@ -1827,7 +1827,7 @@
   {
     "version": "1.12.0",
     "date": "2026-06-03",
-    "title": null,
+    "title": "A new default mobile app",
     "intro": null,
     "app": {
       "new": [
@@ -1865,7 +1865,7 @@
   {
     "version": "1.11.7",
     "date": "2026-05-27",
-    "title": null,
+    "title": "Commit branch graphs and restored streaming",
     "intro": null,
     "app": {
       "new": [
@@ -1899,7 +1899,7 @@
   {
     "version": "1.11.6",
     "date": "2026-05-25",
-    "title": null,
+    "title": "Manage OpenCode plugins from settings",
     "intro": null,
     "app": {
       "new": [
@@ -1928,7 +1928,7 @@
   {
     "version": "1.11.5",
     "date": "2026-05-25",
-    "title": null,
+    "title": "Rename sessions inline",
     "intro": null,
     "app": {
       "new": [
@@ -1966,7 +1966,7 @@
   {
     "version": "1.11.4",
     "date": "2026-05-22",
-    "title": null,
+    "title": "Composer snippets and Electron by default",
     "intro": null,
     "app": {
       "new": [
@@ -2004,7 +2004,7 @@
   {
     "version": "1.11.3",
     "date": "2026-05-19",
-    "title": null,
+    "title": "Skills in slash command autocomplete",
     "intro": null,
     "app": {
       "new": [
@@ -2048,7 +2048,7 @@
   {
     "version": "1.11.2",
     "date": "2026-05-18",
-    "title": null,
+    "title": "Collapsible thinking and inline commit diffs",
     "intro": null,
     "app": {
       "new": [
@@ -2081,7 +2081,7 @@
   {
     "version": "1.11.1",
     "date": "2026-05-15",
-    "title": null,
+    "title": "Session switcher in the chat header",
     "intro": null,
     "app": {
       "new": [
@@ -2120,7 +2120,7 @@
   {
     "version": "1.11.0",
     "date": "2026-05-14",
-    "title": null,
+    "title": "In-app OpenCode updates and offline dictation",
     "intro": null,
     "app": {
       "new": [
@@ -2163,7 +2163,7 @@
   {
     "version": "1.10.4",
     "date": "2026-05-09",
-    "title": null,
+    "title": "Reuse local branches for PR worktrees",
     "intro": null,
     "app": {
       "new": [
@@ -2199,7 +2199,7 @@
   {
     "version": "1.10.3",
     "date": "2026-05-08",
-    "title": null,
+    "title": "Mini Chat windows",
     "intro": null,
     "app": {
       "new": [
@@ -2239,7 +2239,7 @@
   {
     "version": "1.10.2",
     "date": "2026-05-07",
-    "title": null,
+    "title": "Clone repositories when adding a project",
     "intro": null,
     "app": {
       "new": [
@@ -2273,7 +2273,7 @@
   {
     "version": "1.10.1",
     "date": "2026-05-06",
-    "title": null,
+    "title": "Git sync and stash management",
     "intro": null,
     "app": {
       "new": [
@@ -2316,7 +2316,7 @@
   {
     "version": "1.10.0",
     "date": "2026-05-05",
-    "title": null,
+    "title": "Embedded preview for dev servers",
     "intro": null,
     "app": {
       "new": [
@@ -2358,7 +2358,7 @@
   {
     "version": "1.9.10",
     "date": "2026-04-28",
-    "title": null,
+    "title": "Unified model picker across devices",
     "intro": null,
     "app": {
       "new": [
@@ -2396,7 +2396,7 @@
   {
     "version": "1.9.9",
     "date": "2026-04-26",
-    "title": null,
+    "title": "App translations and custom fonts",
     "intro": null,
     "app": {
       "new": [
@@ -2436,7 +2436,7 @@
   {
     "version": "1.9.8",
     "date": "2026-04-22",
-    "title": null,
+    "title": "A /summary command for sessions",
     "intro": null,
     "app": {
       "new": [
@@ -2474,7 +2474,7 @@
   {
     "version": "1.9.7",
     "date": "2026-04-22",
-    "title": null,
+    "title": "A new Electron desktop app",
     "intro": null,
     "app": {
       "new": [
@@ -2514,7 +2514,7 @@
   {
     "version": "1.9.6",
     "date": "2026-04-17",
-    "title": null,
+    "title": "Scheduled tasks and LaTeX rendering",
     "intro": null,
     "app": {
       "new": [
@@ -2552,7 +2552,7 @@
   {
     "version": "1.9.5",
     "date": "2026-04-14",
-    "title": null,
+    "title": "Passkey sign-in for protected instances",
     "intro": null,
     "app": {
       "new": [
@@ -2592,7 +2592,7 @@
   {
     "version": "1.9.4",
     "date": "2026-04-07",
-    "title": null,
+    "title": "Customizable Magic Prompts",
     "intro": null,
     "app": {
       "new": [],
@@ -2631,7 +2631,7 @@
   {
     "version": "1.9.3",
     "date": "2026-03-01",
-    "title": null,
+    "title": "JSON tree viewer for structured output",
     "intro": null,
     "app": {
       "new": [
@@ -2678,7 +2678,7 @@
   {
     "version": "1.9.2",
     "date": "2026-03-31",
-    "title": null,
+    "title": "Faster worktrees and smoother live sync",
     "intro": null,
     "app": {
       "new": [
@@ -2712,7 +2712,7 @@
   {
     "version": "1.9.1",
     "date": "2026-03-20",
-    "title": null,
+    "title": "GitHub links open reliably in chat",
     "intro": null,
     "app": {
       "new": [
@@ -2749,7 +2749,7 @@
   {
     "version": "1.9.0",
     "date": "2026-03-20",
-    "title": null,
+    "title": "Redesigned sidebar and quicker permissions",
     "intro": null,
     "app": {
       "new": [
@@ -2792,7 +2792,7 @@
   {
     "version": "1.8.7",
     "date": "2026-03-13",
-    "title": null,
+    "title": "CLI works again after global install",
     "intro": null,
     "app": {
       "new": [],
@@ -2818,7 +2818,7 @@
   {
     "version": "1.8.6",
     "date": "2026-03-13",
-    "title": null,
+    "title": "Steadier streaming and redesigned sidebar",
     "intro": null,
     "app": {
       "new": [
@@ -2860,7 +2860,7 @@
   {
     "version": "1.8.5",
     "date": "2026-03-04",
-    "title": null,
+    "title": "Faster app startup",
     "intro": null,
     "app": {
       "new": [],
@@ -2897,7 +2897,7 @@
   {
     "version": "1.8.4",
     "date": "2026-03-04",
-    "title": null,
+    "title": "Link GitHub issues and PRs in chat",
     "intro": null,
     "app": {
       "new": [
@@ -2947,7 +2947,7 @@
   {
     "version": "1.8.3",
     "date": "2026-03-02",
-    "title": null,
+    "title": "Redesigned context panel with session chat",
     "intro": null,
     "app": {
       "new": [
@@ -2984,7 +2984,7 @@
   {
     "version": "1.8.2",
     "date": "2026-03-01",
-    "title": null,
+    "title": "Share chat as image",
     "intro": null,
     "app": {
       "new": [
@@ -3020,7 +3020,7 @@
   {
     "version": "1.8.1",
     "date": "2026-02-28",
-    "title": null,
+    "title": "No more tunnel lock screen on local sessions",
     "intro": null,
     "app": {
       "new": [],
@@ -3042,7 +3042,7 @@
   {
     "version": "1.8.0",
     "date": "2026-02-28",
-    "title": null,
+    "title": "SSH remote instances and secure tunnels",
     "intro": null,
     "app": {
       "new": [
@@ -3097,7 +3097,7 @@
   {
     "version": "1.7.5",
     "date": "2026-02-25",
-    "title": null,
+    "title": "Messages no longer duplicate or disappear",
     "intro": null,
     "app": {
       "new": [
@@ -3130,7 +3130,7 @@
   {
     "version": "1.7.4",
     "date": "2026-02-24",
-    "title": null,
+    "title": "Redesigned settings and MCP config manager",
     "intro": null,
     "app": {
       "new": [
@@ -3177,7 +3177,7 @@
   {
     "version": "1.7.3",
     "date": "2026-02-21",
-    "title": null,
+    "title": "Custom session folders and keyboard shortcuts",
     "intro": null,
     "app": {
       "new": [
@@ -3214,7 +3214,7 @@
   {
     "version": "1.7.2",
     "date": "2026-02-20",
-    "title": null,
+    "title": "Plan view in the context panel",
     "intro": null,
     "app": {
       "new": [
@@ -3250,7 +3250,7 @@
   {
     "version": "1.7.1",
     "date": "2026-02-18",
-    "title": null,
+    "title": "Run shell commands directly in chat",
     "intro": null,
     "app": {
       "new": [
@@ -3287,7 +3287,7 @@
   {
     "version": "1.7.0",
     "date": "2026-02-17",
-    "title": null,
+    "title": "Context overview panel and inline Mermaid diagrams",
     "intro": null,
     "app": {
       "new": [
@@ -3318,7 +3318,7 @@
   {
     "version": "1.6.9",
     "date": "2026-02-16",
-    "title": null,
+    "title": "Redesigned workspace shell with tabbed sidebars",
     "intro": null,
     "app": {
       "new": [
@@ -3357,7 +3357,7 @@
   {
     "version": "1.6.8",
     "date": "2026-02-12",
-    "title": null,
+    "title": "Drag and drop image attachments",
     "intro": null,
     "app": {
       "new": [
@@ -3394,7 +3394,7 @@
   {
     "version": "1.6.7",
     "date": "2026-02-10",
-    "title": null,
+    "title": "Voice input and read-aloud responses",
     "intro": null,
     "app": {
       "new": [
@@ -3429,7 +3429,7 @@
   {
     "version": "1.6.6",
     "date": "2026-02-09",
-    "title": null,
+    "title": "Redesigned workspace with Git sidebar and terminal dock",
     "intro": null,
     "app": {
       "new": [
@@ -3465,7 +3465,7 @@
   {
     "version": "1.6.5",
     "date": "2026-02-06",
-    "title": null,
+    "title": "Prompt history and saved input drafts",
     "intro": null,
     "app": {
       "new": [
@@ -3500,7 +3500,7 @@
   {
     "version": "1.6.4",
     "date": "2026-02-05",
-    "title": null,
+    "title": "Select text in chat to quote it",
     "intro": null,
     "app": {
       "new": [
@@ -3537,7 +3537,7 @@
   {
     "version": "1.6.3",
     "date": "2026-02-02",
-    "title": null,
+    "title": "Login protected against brute-force attempts",
     "intro": null,
     "app": {
       "new": [],
@@ -3565,7 +3565,7 @@
   {
     "version": "1.6.2",
     "date": "2026-02-01",
-    "title": null,
+    "title": "18 new themes with custom theme support",
     "intro": null,
     "app": {
       "new": [
@@ -3598,7 +3598,7 @@
   {
     "version": "1.6.1",
     "date": "2026-01-30",
-    "title": null,
+    "title": "Stop button to cancel generation mid-response",
     "intro": null,
     "app": {
       "new": [
@@ -3635,7 +3635,7 @@
   {
     "version": "1.6.0",
     "date": "2026-01-29",
-    "title": null,
+    "title": "Chat recovers automatically when it stalls",
     "intro": null,
     "app": {
       "new": [
@@ -3670,7 +3670,7 @@
   {
     "version": "1.5.9",
     "date": "2026-01-28",
-    "title": null,
+    "title": "Fully isolated worktree sessions",
     "intro": null,
     "app": {
       "new": [
@@ -3702,7 +3702,7 @@
   {
     "version": "1.5.8",
     "date": "2026-01-26",
-    "title": null,
+    "title": "Plan and Build mode switching",
     "intro": null,
     "app": {
       "new": [
@@ -3742,7 +3742,7 @@
   {
     "version": "1.5.7",
     "date": "2026-01-24",
-    "title": null,
+    "title": "Send failed GitHub checks to chat",
     "intro": null,
     "app": {
       "new": [],
@@ -3767,7 +3767,7 @@
   {
     "version": "1.5.6",
     "date": "2026-01-24",
-    "title": null,
+    "title": "Start sessions from GitHub issues and PRs",
     "intro": null,
     "app": {
       "new": [
@@ -3795,7 +3795,7 @@
   {
     "version": "1.5.5",
     "date": "2026-01-23",
-    "title": null,
+    "title": "Shareable links to sessions and tabs",
     "intro": null,
     "app": {
       "new": [],
@@ -3823,7 +3823,7 @@
   {
     "version": "1.5.4",
     "date": "2026-01-22",
-    "title": null,
+    "title": "Apply Patch tool shows a diff preview",
     "intro": null,
     "app": {
       "new": [
@@ -3854,7 +3854,7 @@
   {
     "version": "1.5.3",
     "date": "2026-01-20",
-    "title": null,
+    "title": "Edit files inline in the browser",
     "intro": null,
     "app": {
       "new": [
@@ -3890,7 +3890,7 @@
   {
     "version": "1.5.2",
     "date": "2026-01-17",
-    "title": null,
+    "title": "Start worktree sessions from branches",
     "intro": null,
     "app": {
       "new": [
@@ -3922,7 +3922,7 @@
   {
     "version": "1.5.1",
     "date": "2026-01-16",
-    "title": null,
+    "title": "Config reload no longer crashes",
     "intro": null,
     "app": {
       "new": [],
@@ -3945,7 +3945,7 @@
   {
     "version": "1.5.0",
     "date": "2026-01-16",
-    "title": null,
+    "title": "Browse workspace files in a new tab",
     "intro": null,
     "app": {
       "new": [
@@ -3988,7 +3988,7 @@
   {
     "version": "1.4.9",
     "date": "2026-01-14",
-    "title": null,
+    "title": "View sessions alongside files",
     "intro": null,
     "app": {
       "new": [
@@ -4019,7 +4019,7 @@
   {
     "version": "1.4.8",
     "date": "2026-01-14",
-    "title": null,
+    "title": "Sessions sorted by most recent activity",
     "intro": null,
     "app": {
       "new": [
@@ -4056,7 +4056,7 @@
   {
     "version": "1.4.7",
     "date": "2026-01-10",
-    "title": null,
+    "title": "Browse skills from ClawdHub",
     "intro": null,
     "app": {
       "new": [
@@ -4080,7 +4080,7 @@
   {
     "version": "1.4.6",
     "date": "2026-01-09",
-    "title": null,
+    "title": "Answer questions right in chat",
     "intro": null,
     "app": {
       "new": [
@@ -4110,7 +4110,7 @@
   {
     "version": "1.4.5",
     "date": "2026-01-08",
-    "title": null,
+    "title": "Model thinking effort and MCP toggles",
     "intro": null,
     "app": {
       "new": [
@@ -4145,7 +4145,7 @@
   {
     "version": "1.4.4",
     "date": "2026-01-08",
-    "title": null,
+    "title": "Multi-project support and worktree session setup",
     "intro": null,
     "app": {
       "new": [
@@ -4191,7 +4191,7 @@
   {
     "version": "1.4.3",
     "date": "2026-01-04",
-    "title": null,
+    "title": "Run prompts across multiple models in parallel",
     "intro": null,
     "app": {
       "new": [
@@ -4221,7 +4221,7 @@
   {
     "version": "1.4.2",
     "date": "2026-01-02",
-    "title": null,
+    "title": "Timeline navigation with undo and redo",
     "intro": null,
     "app": {
       "new": [
@@ -4252,7 +4252,7 @@
   {
     "version": "1.4.1",
     "date": "2026-01-02",
-    "title": null,
+    "title": "Faster terminal and multi-model comparison",
     "intro": null,
     "app": {
       "new": [
@@ -4290,7 +4290,7 @@
   {
     "version": "1.4.0",
     "date": "2026-01-01",
-    "title": null,
+    "title": "Run multiple agents in isolated worktrees",
     "intro": null,
     "app": {
       "new": [
@@ -4327,7 +4327,7 @@
   {
     "version": "1.3.9",
     "date": "2025-12-30",
-    "title": null,
+    "title": "Skills management and catalog",
     "intro": null,
     "app": {
       "new": [
@@ -4353,7 +4353,7 @@
   {
     "version": "1.3.8",
     "date": "2025-12-29",
-    "title": null,
+    "title": "Intel Mac support and message queuing",
     "intro": null,
     "app": {
       "new": [
@@ -4388,7 +4388,7 @@
   {
     "version": "1.3.7",
     "date": "2025-12-28",
-    "title": null,
+    "title": "Redesigned settings with mobile navigation",
     "intro": null,
     "app": {
       "new": [
@@ -4421,7 +4421,7 @@
   {
     "version": "1.3.6",
     "date": "2025-12-27",
-    "title": null,
+    "title": "Connect and disconnect providers in settings",
     "intro": null,
     "app": {
       "new": [
@@ -4447,7 +4447,7 @@
   {
     "version": "1.3.5",
     "date": "2025-12-26",
-    "title": null,
+    "title": "Faster workspace switching and fuzzy file search",
     "intro": null,
     "app": {
       "new": [
@@ -4484,7 +4484,7 @@
   {
     "version": "1.3.4",
     "date": "2025-12-25",
-    "title": null,
+    "title": "Diff view loads reliably on large files",
     "intro": null,
     "app": {
       "new": [],
@@ -4509,7 +4509,7 @@
   {
     "version": "1.3.3",
     "date": "2025-12-25",
-    "title": null,
+    "title": "More reliable VS Code extension startup",
     "intro": null,
     "app": {
       "new": [
@@ -4546,7 +4546,7 @@
   {
     "version": "1.3.2",
     "date": "2025-12-22",
-    "title": null,
+    "title": "Directory switching no longer breaks sessions",
     "intro": null,
     "app": {
       "new": [],
@@ -4563,7 +4563,7 @@
   {
     "version": "1.3.1",
     "date": "2025-12-22",
-    "title": null,
+    "title": "New app icon and no more empty chats",
     "intro": null,
     "app": {
       "new": [
@@ -4582,7 +4582,7 @@
   {
     "version": "1.3.0",
     "date": "2025-12-21",
-    "title": null,
+    "title": "Revert chat messages",
     "intro": null,
     "app": {
       "new": [
@@ -4619,7 +4619,7 @@
   {
     "version": "1.2.9",
     "date": "2025-12-20",
-    "title": null,
+    "title": "Automatic session cleanup",
     "intro": null,
     "app": {
       "new": [
@@ -4644,7 +4644,7 @@
   {
     "version": "1.2.8",
     "date": "2025-12-19",
-    "title": null,
+    "title": "Update the web app without the CLI",
     "intro": null,
     "app": {
       "new": [
@@ -4662,7 +4662,7 @@
   {
     "version": "1.2.7",
     "date": "2025-12-19",
-    "title": null,
+    "title": "Keyboard shortcuts help menu",
     "intro": null,
     "app": {
       "new": [
@@ -4681,7 +4681,7 @@
   {
     "version": "1.2.6",
     "date": "2025-12-19",
-    "title": null,
+    "title": "File previews in permission cards",
     "intro": null,
     "app": {
       "new": [
@@ -4708,7 +4708,7 @@
   {
     "version": "1.2.5",
     "date": "2025-12-19",
-    "title": null,
+    "title": "Redesigned Git tab layout",
     "intro": null,
     "app": {
       "new": [],
@@ -4737,7 +4737,7 @@
   {
     "version": "1.2.4",
     "date": "2025-12-18",
-    "title": null,
+    "title": "Smoother mobile terminal scrolling",
     "intro": null,
     "app": {
       "new": [
@@ -4754,7 +4754,7 @@
   {
     "version": "1.2.3",
     "date": "2025-12-17",
-    "title": null,
+    "title": "Image previews in the Diff tab",
     "intro": null,
     "app": {
       "new": [
@@ -4773,7 +4773,7 @@
   {
     "version": "1.2.2",
     "date": "2025-12-17",
-    "title": null,
+    "title": "Live progress for agent tasks",
     "intro": null,
     "app": {
       "new": [],
@@ -4799,7 +4799,7 @@
   {
     "version": "1.2.1",
     "date": "2025-12-16",
-    "title": null,
+    "title": "Todo tracking row in chat",
     "intro": null,
     "app": {
       "new": [],
@@ -4823,7 +4823,7 @@
   {
     "version": "1.2.0",
     "date": "2025-12-15",
-    "title": null,
+    "title": "Favorite models and adjustable font size",
     "intro": null,
     "app": {
       "new": [],
@@ -4851,7 +4851,7 @@
   {
     "version": "1.1.6",
     "date": "2025-12-15",
-    "title": null,
+    "title": "Redesigned session unlock screen",
     "intro": null,
     "app": {
       "new": [],
@@ -4875,7 +4875,7 @@
   {
     "version": "1.1.5",
     "date": "2025-12-15",
-    "title": null,
+    "title": "Fuzzy search for file mentions",
     "intro": null,
     "app": {
       "new": [
@@ -4903,7 +4903,7 @@
   {
     "version": "1.1.4",
     "date": "2025-12-15",
-    "title": null,
+    "title": "Flexoki syntax highlighting",
     "intro": null,
     "app": {
       "new": [],
@@ -4929,7 +4929,7 @@
   {
     "version": "1.1.3",
     "date": "2025-12-14",
-    "title": null,
+    "title": "Line wrap toggle in diff view",
     "intro": null,
     "app": {
       "new": [
@@ -4946,7 +4946,7 @@
   {
     "version": "1.1.2",
     "date": "2025-12-13",
-    "title": null,
+    "title": "VS Code extension moves to the activity bar",
     "intro": null,
     "app": {
       "new": [
@@ -4976,7 +4976,7 @@
   {
     "version": "1.1.1",
     "date": "2025-12-13",
-    "title": null,
+    "title": "User messages render correctly again",
     "intro": null,
     "app": {
       "new": [],
@@ -4993,7 +4993,7 @@
   {
     "version": "1.1.0",
     "date": "2025-12-13",
-    "title": null,
+    "title": "VS Code extension and answer forking",
     "intro": null,
     "app": {
       "new": [
@@ -5022,7 +5022,7 @@
   {
     "version": "1.0.9",
     "date": "2025-12-08",
-    "title": null,
+    "title": "Changelog shown in update dialog",
     "intro": null,
     "app": {
       "new": [
@@ -5041,7 +5041,7 @@
   {
     "version": "1.0.8",
     "date": "2025-12-08",
-    "title": null,
+    "title": "More reliable OpenCode CLI detection",
     "intro": null,
     "app": {
       "new": [
@@ -5059,7 +5059,7 @@
   {
     "version": "1.0.7",
     "date": "2025-12-08",
-    "title": null,
+    "title": "Smoother app updates",
     "intro": null,
     "app": {
       "new": [],
@@ -5075,7 +5075,7 @@
   {
     "version": "1.0.6",
     "date": "2025-12-08",
-    "title": null,
+    "title": "Better shell environment detection",
     "intro": null,
     "app": {
       "new": [],
@@ -5090,7 +5090,7 @@
   {
     "version": "1.0.5",
     "date": "2025-12-07",
-    "title": null,
+    "title": "Older messages load without jumping",
     "intro": null,
     "app": {
       "new": [],
@@ -5108,7 +5108,7 @@
   {
     "version": "1.0.4",
     "date": "2025-12-07",
-    "title": null,
+    "title": "Faster desktop app startup",
     "intro": null,
     "app": {
       "new": [],
@@ -5123,7 +5123,7 @@
   {
     "version": "1.0.3",
     "date": "2025-12-07",
-    "title": null,
+    "title": "Refreshed onboarding and sidebar",
     "intro": null,
     "app": {
       "new": [],
@@ -5139,7 +5139,7 @@
   {
     "version": "1.0.2",
     "date": "2025-12-07",
-    "title": null,
+    "title": "Refined macOS window design",
     "intro": null,
     "app": {
       "new": [],
@@ -5154,7 +5154,7 @@
   {
     "version": "1.0.1",
     "date": "2025-12-07",
-    "title": null,
+    "title": "OpenChamber public release",
     "intro": null,
     "app": {
       "new": [

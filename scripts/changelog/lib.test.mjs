@@ -54,7 +54,7 @@ test('rejects shapes the generator cannot render', () => {
 test('renders groups in canonical order with today\'s headers and skips versions without a VS Code section', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'changelog-'));
   fs.writeFileSync(path.join(directory, '1.2.3.md'), release);
-  fs.writeFileSync(path.join(directory, '1.2.4.md'), '---\nversion: 1.2.4\ndate: 2026-02-01\n---\n\n## App\n\n### Improvements\n- Faster.\n');
+  fs.writeFileSync(path.join(directory, '1.2.4.md'), '---\nversion: 1.2.4\ndate: 2026-02-01\ntitle: Faster\n---\n\n## App\n\n### Improvements\n- Faster.\n');
   fs.writeFileSync(path.join(directory, 'unreleased.md'), '## App\n\n### Fixes\n- Pending fix.\n\n## VS Code\n');
   const loaded = loadReleases(directory);
 
@@ -108,18 +108,23 @@ A short intro.
   assert.equal(index[0].vscode, null);
 });
 
-test('loadReleases refuses a file whose name and version disagree', () => {
+test('loadReleases refuses a file whose name and version disagree, and a release without a title', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'changelog-'));
   fs.writeFileSync(path.join(directory, '9.9.9.md'), release);
   assert.throws(() => loadReleases(directory), /does not match the file name 9\.9\.9/);
+  fs.unlinkSync(path.join(directory, '9.9.9.md'));
+  fs.writeFileSync(path.join(directory, '1.0.0.md'), '---\nversion: 1.0.0\ndate: 2026-02-01\n---\n\n## App\n\n### Fixes\n- x.\n');
+  assert.throws(() => loadReleases(directory), /needs a title/);
 });
 
-test('promoteUnreleased dates the release, resets the template, and refuses an empty release', () => {
+test('promoteUnreleased dates and titles the release, resets the template, and refuses an empty or untitled release', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'changelog-'));
-  fs.writeFileSync(path.join(directory, 'unreleased.md'), '## App\n\n### New\n- Something shipped.\n\n## VS Code\n');
+  fs.writeFileSync(path.join(directory, 'unreleased.md'), '---\ntitle: Something shipped\n---\n\n## App\n\n### New\n- Something shipped.\n\n## VS Code\n');
   const created = promoteUnreleased(directory, '2.0.0', '2026-03-01');
   assert.equal(path.basename(created), '2.0.0.md');
-  assert.match(fs.readFileSync(created, 'utf8'), /^---\nversion: 2\.0\.0\ndate: 2026-03-01\n---\n\n## App/);
-  assert.equal(fs.readFileSync(path.join(directory, 'unreleased.md'), 'utf8'), '## App\n\n## VS Code\n');
+  assert.match(fs.readFileSync(created, 'utf8'), /^---\nversion: 2\.0\.0\ndate: 2026-03-01\ntitle: Something shipped\n---\n\n## App/);
+  assert.equal(fs.readFileSync(path.join(directory, 'unreleased.md'), 'utf8'), '---\ntitle:\n---\n\n## App\n\n## VS Code\n');
   assert.throws(() => promoteUnreleased(directory, '2.0.1', '2026-03-02'), /has no bullets/);
+  fs.writeFileSync(path.join(directory, 'unreleased.md'), '## App\n\n### New\n- Untitled.\n');
+  assert.throws(() => promoteUnreleased(directory, '2.0.1', '2026-03-02'), /has no title/);
 });
