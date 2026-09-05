@@ -37,6 +37,8 @@ export interface MobilePillComposerProps {
     onExpand: () => void;
     onApplySuggestion: (text: string) => void;
     onPrimaryAction: () => void;
+    /** While a turn runs, the trailing action queues, as the expanded composer does. */
+    onQueueMessage: () => void;
     onNewSession: () => void;
     onPickLocalFiles: () => void;
     onOpenIssuePicker: () => void;
@@ -66,6 +68,7 @@ export function MobilePillComposer(props: MobilePillComposerProps) {
         onExpand,
         onApplySuggestion,
         onPrimaryAction,
+        onQueueMessage,
         onNewSession,
         onPickLocalFiles,
         onOpenIssuePicker,
@@ -179,8 +182,10 @@ export function MobilePillComposer(props: MobilePillComposerProps) {
                     </Button>
                 ) : null}
             </div>
-            {/* While running, Send moves outside because Abort owns the pill's
-                end slot. An empty new-session draft needs neither action. */}
+            {/* While running, Abort owns the pill's end slot and the outer button
+                queues the draft, with the same rotated icon and label the expanded
+                composer uses for that state. An empty new-session draft needs
+                neither action. */}
             <div
                 className={cn(
                     'flex-shrink-0 transition-all duration-200 ease-out',
@@ -194,14 +199,14 @@ export function MobilePillComposer(props: MobilePillComposerProps) {
                         showTrailingSendAction ? 'text-primary hover:text-primary' : 'text-foreground',
                     )}
                     style={{ backgroundColor: currentTheme?.colors?.surface?.subtle }}
-                    onClick={showTrailingSendAction ? onPrimaryAction : onNewSession}
+                    onClick={showTrailingSendAction ? onQueueMessage : onNewSession}
                     disabled={newSessionDraftOpen && !showTrailingSendAction}
-                    title={t(showTrailingSendAction ? 'chat.chatInput.actions.sendMessageAria' : 'mobile.sessions.newChat')}
-                    aria-label={t(showTrailingSendAction ? 'chat.chatInput.actions.sendMessageAria' : 'mobile.sessions.newChat')}
+                    title={t(showTrailingSendAction ? 'chat.chatInput.actions.queueMessageAria' : 'mobile.sessions.newChat')}
+                    aria-label={t(showTrailingSendAction ? 'chat.chatInput.actions.queueMessageAria' : 'mobile.sessions.newChat')}
                 >
                     <Icon
                         name={showTrailingSendAction ? 'send-plane-2' : 'add'}
-                        className={cn(showTrailingSendAction ? sendIconSizeClass : 'h-5 w-5', 'text-current')}
+                        className={cn(showTrailingSendAction ? cn(sendIconSizeClass, '-rotate-90') : 'h-5 w-5', 'text-current')}
                     />
                 </button>
             </div>
