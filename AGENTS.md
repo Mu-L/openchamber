@@ -101,7 +101,7 @@ process violation.
 | Settings UI, settings dialogs, configuration surfaces, or settings search | `settings-ui-patterns` |
 | Sortable or drag-to-reorder behavior, especially `@dnd-kit` and touch/wrapping layouts | `drag-to-reorder` |
 | iOS Simulator build, launch, preview, gestures, or `serve-sim` control | `serve-sim` |
-| The maintainer explicitly asks to update the changelog (main app or VS Code extension) — the only time `changelog/unreleased.md` is edited | `changelog-authoring` |
+| The maintainer explicitly asks to update the changelog (main app or VS Code extension) — the only time `changelog/unreleased.md` is edited | `update-changelog` |
 | Creating or editing skills, `AGENTS.md`, or docs reached through agent instructions/context pointers | `writing-for-agents` |
 | Reviewing a single pull request or drafting a PR verdict/close/review comment | `pr-review` |
 | Triaging, cleaning up, or batch-processing the open PR queue | `triage-prs` |

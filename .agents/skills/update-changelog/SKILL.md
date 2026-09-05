@@ -1,5 +1,5 @@
 ---
-name: changelog-authoring
+name: update-changelog
 description: Use only when the maintainer explicitly asks to update the changelog — then write `changelog/unreleased.md` (main app and VS Code extension) summarizing changes since the latest git tag.
 license: MIT
 compatibility: opencode

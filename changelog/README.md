@@ -37,4 +37,4 @@ Groups may appear in any order in a source file; the generator emits them as New
 
 `CHANGELOG.md` at the repo root is legacy: app versions up to 1.22.1 fetch it from `main` for their update notes. It is refreshed while it exists and never recreated; delete it after 2026-09-19 and it is gone for good.
 
-How to write the title and the bullets lives in `.agents/skills/changelog-authoring/SKILL.md`.
+How to write the title and the bullets lives in `.agents/skills/update-changelog/SKILL.md`.
