@@ -112,7 +112,7 @@ export interface TerminalServerSession {
 
 export interface TerminalAPI {
   listShells?(): Promise<TerminalShellOption[]>;
-  /** Server-side sessions for a working directory; absent on runtimes without a server terminal list. */
+  /** Server-side sessions for a working directory, or all directories when cwd is empty; absent on runtimes without a server terminal list. */
   listSessions?(cwd: string): Promise<TerminalServerSession[]>;
   /** Marks the sessions as active so the server's idle sweep does not reap terminals an open client still shows. */
   touchSessions?(sessionIds: string[]): Promise<void>;

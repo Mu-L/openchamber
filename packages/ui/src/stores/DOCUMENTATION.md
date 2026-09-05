@@ -130,10 +130,13 @@ Invariants to preserve when editing:
 - Reconciliation selects one record per action before updating tabs. A running execution wins
   over retained exited records independently of listing order. An in-progress stop remains
   stopping until the same execution exits or explicit termination failure restores running.
-- `terminalSessionObserver` shares one five-second refresh loop per terminal adapter and
-  demanded directory. Only visible, online headers/panels demand refreshes; focus and online
-  recovery refresh immediately. Failed reads preserve state, the last consumer stops the loop,
-  and responses from a replaced runtime cannot publish into the new runtime.
+- `terminalSessionObserver` shares one five-second refresh loop per terminal adapter across
+  the visible sidebar, headers and panels. The existing empty-cwd listing returns all server
+  sessions in one request; directory subscribers receive only their own records. A sidebar
+  subscriber reconciles the complete list, including omitted known action directories.
+  Focus and online recovery refresh immediately. Hidden/offline clients pause, failed reads
+  preserve state, and the last consumer stops the loop. Replaced runtimes cannot publish old
+  responses. Mutation revisions are captured for every subscribed scope before the request.
 - Passive action adoption may restore output but has no launch-time authority to open browser
   tabs. Preview navigation belongs to the initiating host directory even for a parent action.
 - Server session listings capture the directory's per-action mutation revisions when the

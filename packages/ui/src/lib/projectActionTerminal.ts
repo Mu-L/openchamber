@@ -1,3 +1,4 @@
+import { normalizeProjectActionDirectory } from './projectActions';
 import { getRuntimeKey } from './runtime-switch';
 import type { CreateTerminalOptions, TerminalAPI, TerminalServerSession, TerminalSession, TerminalSessionPurpose } from './api/types';
 
@@ -252,4 +253,16 @@ export const reconcileTerminalSessionAuthority = (
     });
   terminalFlights.set(flightKey, flight);
   return flight;
+};
+
+
+export const groupTerminalSessionsByDirectory = (sessions: TerminalServerSession[]): Map<string, TerminalServerSession[]> => {
+  const groups = new Map<string, TerminalServerSession[]>();
+  for (const session of sessions) {
+    const directory = normalizeProjectActionDirectory(session.cwd);
+    const group = groups.get(directory);
+    if (group) group.push(session);
+    else groups.set(directory, [session]);
+  }
+  return groups;
 };

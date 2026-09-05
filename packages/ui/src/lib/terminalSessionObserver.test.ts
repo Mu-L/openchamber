@@ -49,10 +49,10 @@ test('visible consumers share one loop and discover a later peer run without int
   cleanups.push(observeTerminalSessions(source.terminal, '/repo', () => new Map(), result => first.push(result.sessions)));
   cleanups.push(observeTerminalSessions(source.terminal, '/repo', () => new Map(), result => second.push(result.sessions)));
   await tick();
-  expect(source.reads).toEqual(['/repo']);
+  expect(source.reads).toEqual(['']);
   source.setRecords([running]);
   await new Promise(resolve => setTimeout(resolve, 5100));
-  expect(source.reads).toEqual(['/repo', '/repo']);
+  expect(source.reads).toEqual(['', '']);
   expect(first.at(-1)).toEqual([running]);
   expect(second.at(-1)).toEqual([running]);
 }, 10000);
@@ -90,4 +90,37 @@ test('hidden and offline scopes stop reads, wake on recovery, and preserve state
   browser.dispatchEvent(new browser.Event('focus'));
   await tick();
   expect(source.reads).toHaveLength(3);
+});
+
+
+test('one global request serves 100 directories and an all-directory consumer', async () => {
+  const source = createTerminal();
+  source.setRecords([running]);
+  const seen = new Map<string, TerminalServerSession[]>();
+  for (let index = 0; index < 100; index += 1) {
+    const directory = index === 0 ? '/repo/' : `/project-${index}`;
+    cleanups.push(observeTerminalSessions(source.terminal, directory, () => new Map(), result => seen.set(directory, result.sessions)));
+  }
+  cleanups.push(observeTerminalSessions(source.terminal, '', () => new Map(), result => seen.set('all', result.sessions)));
+  await tick();
+  expect(source.reads).toEqual(['']);
+  expect(seen.get('/repo/')).toEqual([running]);
+  expect(seen.get('/project-1')).toEqual([]);
+  expect(seen.get('all')).toEqual([running]);
+});
+
+test('rejects a replaced runtime response and refreshes the new runtime', async () => {
+  const source = createTerminal();
+  let resolvePending: (sessions: TerminalServerSession[]) => void = () => {};
+  const pending = new Promise<TerminalServerSession[]>(resolve => { resolvePending = resolve; });
+  let calls = 0;
+  source.terminal.listSessions = () => ++calls === 1 ? pending : Promise.resolve([]);
+  const seen: TerminalServerSession[][] = [];
+  cleanups.push(observeTerminalSessions(source.terminal, '/repo', () => new Map([['/repo\0build', 3]]), result => seen.push(result.sessions)));
+  await tick();
+  browser.dispatchEvent(new browser.CustomEvent('openchamber:runtime-endpoint-changed', { detail: {} }));
+  resolvePending([running]);
+  await tick();
+  expect(seen).toEqual([[]]);
+  expect(calls).toBe(2);
 });
