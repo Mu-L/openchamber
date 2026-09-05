@@ -3,7 +3,7 @@ import { ComposerDictation } from '@/components/dictation/ComposerDictation';
 // sessionStore removed — currentSessionId comes from useSessionUIStore
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
-import { createMessageQueueTarget, getMessageQueueKey, useMessageQueueStore, type QueuedContextPart, type QueuedMessage } from '@/stores/messageQueueStore';
+import { isServerOwnedMessageQueue, createMessageQueueTarget, getMessageQueueKey, useMessageQueueStore, type QueuedContextPart, type QueuedMessage } from '@/stores/messageQueueStore';
 import { useAutoReviewStore } from '@/stores/useAutoReviewStore';
 import { useSessionUIStore } from '@/sync/session-ui-store';
 import { useSelectionStore } from '@/sync/selection-store';
@@ -18,7 +18,6 @@ import {
 import type { AttachedFile } from '@/stores/types/sessionTypes';
 import * as sessionActions from '@/sync/session-actions';
 import { buildLinkedIssue, buildLinkedLinearIssue } from '@/lib/linkedIssues';
-import { useUserMessageHistory } from "@/sync/sync-context";
 import { getInlineCommentDraftKey, useInlineCommentDraftStore, type InlineCommentDraft, type InlineCommentDraftTarget } from '@/stores/useInlineCommentDraftStore';
 import { useSnippetsStore } from '@/stores/useSnippetsStore';
 import { renderMagicPrompt } from '@/lib/magicPrompts';
@@ -166,6 +165,17 @@ import { LinkedReferenceRow } from './composer/ui/LinkedReferenceRow';
 import { RevertedMessageDock } from './composer/ui/RevertedMessageDock';
 import { SessionSuggestionChip } from '@/components/chat/SessionSuggestionChip';
 import { SessionGoalRow } from '@/components/chat/SessionGoalRow';
+import {
+    createInputHistoryIdentity,
+    selectInputHistoryEntries,
+    type InputHistorySubmission,
+    useInputHistoryStore,
+} from '@/stores/useInputHistoryStore';
+import {
+    buildChatInputHistorySubmissions,
+    buildInputHistoryNavigatorIdentity,
+    mapInputHistoryEntriesToValues,
+} from './inputHistory';
 
 // Lazy like in ChatMessage: a static import would pull the @pierre/diffs and
 // Shiki stacks into the eager startup graph for a dialog opened on demand.
@@ -188,6 +198,7 @@ const MAX_MOBILE_COMPOSER_LINES = 16;
  */
 const MOBILE_COMPOSER_BOUND_GAP_PX = 4;
 const EMPTY_QUEUE: QueuedMessage[] = [];
+const EMPTY_INPUT_HISTORY_ENTRIES = Object.freeze([] as const);
 const COMPACT_CHAT_PLACEHOLDER_MAX_WIDTH = 560;
 const renameFileForAttachmentCitation = (file: File, filename: string): File => {
     if (file.name === filename) {
@@ -888,9 +899,28 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
     const consumeDrafts = useInlineCommentDraftStore((state) => state.consumeDrafts);
     const hasDrafts = draftCount > 0;
 
-    // User message history for up/down arrow navigation.
-    // Keep this on a narrow hook instead of full session message records.
-    const messageHistory = useMessageHistory(useUserMessageHistory(currentSessionId ?? ""));
+    const inputHistoryScope = useInputHistoryStore((state) => state.scope);
+    const inputHistoryIdentity = React.useMemo(
+        () => createInputHistoryIdentity(
+            activeRuntimeKey,
+            currentSessionDirectoryForSync ?? currentDirectory ?? '',
+            currentSessionId ?? 'draft',
+        ),
+        [activeRuntimeKey, currentDirectory, currentSessionDirectoryForSync, currentSessionId],
+    );
+    const inputHistoryEntries = useInputHistoryStore(React.useCallback((state) => {
+        const entries = selectInputHistoryEntries(state, inputHistoryIdentity);
+        return entries.length === 0 ? EMPTY_INPUT_HISTORY_ENTRIES : entries;
+    }, [inputHistoryIdentity]));
+    const historyValues = React.useMemo(
+        () => mapInputHistoryEntriesToValues(inputHistoryEntries),
+        [inputHistoryEntries],
+    );
+    const messageHistoryIdentity = React.useMemo(
+        () => buildInputHistoryNavigatorIdentity(inputHistoryScope, inputHistoryIdentity),
+        [inputHistoryIdentity, inputHistoryScope],
+    );
+    const messageHistory = useMessageHistory<AttachedFile>(historyValues, messageHistoryIdentity);
 
     // Keep messageRef in sync with message state
     React.useEffect(() => {
@@ -1391,6 +1421,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
             sessionId?: string;
             directory?: string;
             draftSnapshot?: NonNullable<typeof capturedDraftSnapshot>;
+            historySubmissions?: InputHistorySubmission[];
             delivery?: 'steer';
         } | undefined;
         if (isBtwActive && btwSessionId && btwDirectory) {
@@ -1437,6 +1468,19 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                 return;
             }
             if (queuedOnly && queuedMessagesToSend.length === 0) return;
+        }
+
+        const historySubmissions = buildChatInputHistorySubmissions({
+            inputMode,
+            // Server-owned items were recorded on acceptance. VS Code records
+            // the full items actually taken, never the metadata projection.
+            queuedMessages: isServerOwnedMessageQueue() ? [] : queuedMessagesToSend,
+            composerText: inputSnapshot.message,
+            composerAttachments: attachedFiles,
+            includeComposer: !queuedOnly && inputSnapshot.hasContent,
+        });
+        if (historySubmissions?.length) {
+            sendMessageOptions = { ...sendMessageOptions, historySubmissions };
         }
 
         // Inline review comments and synthetic context are consumed before
@@ -1910,9 +1954,10 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
 
         if (e.key === 'ArrowUp' && canNavigateHistoryUp) {
             e.preventDefault();
-            const recalled = messageHistory.older(message);
+            const recalled = messageHistory.older({ text: message, attachments: attachedFiles });
             if (recalled !== null) {
-                setMessage(recalled);
+                setMessage(recalled.text);
+                useInputStore.getState().setAttachedFiles([...recalled.attachments]);
                 // Caret to the start, so the recalled message reads from its
                 // beginning rather than from wherever the draft's caret was.
                 requestAnimationFrame(() => composerRef.current?.setSelection(0, 0));
@@ -1922,8 +1967,12 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
 
         if (e.key === 'ArrowDown' && canNavigateHistoryDown) {
             e.preventDefault();
-            const recalled = messageHistory.newer();
-            if (recalled !== null) setMessage(recalled);
+            const recalled = messageHistory.newer({ text: message, attachments: attachedFiles });
+            if (recalled !== null) {
+                setMessage(recalled.text);
+                useInputStore.getState().setAttachedFiles([...recalled.attachments]);
+                requestAnimationFrame(() => composerRef.current?.setSelection(recalled.text.length, recalled.text.length));
+            }
             return;
         }
 

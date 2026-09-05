@@ -15,6 +15,15 @@ import { setFilesViewShowGitignored } from '@/lib/filesViewShowGitignored';
 import { loadAppearancePreferences, applyAppearancePreferences } from '@/lib/appearancePersistence';
 import { getRegisteredRuntimeAPIs } from '@/contexts/runtimeAPIRegistry';
 import { sanitizeStarterRefs } from '@/lib/draftStarters';
+import {
+  DEFAULT_INPUT_HISTORY_LIMIT,
+  DEFAULT_INPUT_HISTORY_SCOPE,
+  isInputHistoryLimit,
+  isInputHistoryScope,
+} from '@/lib/inputHistoryScope';
+import {
+  useInputHistoryStore,
+} from '@/stores/useInputHistoryStore';
 import { normalizeMobileKeyboardMode, setStoredMobileKeyboardMode } from '@/lib/mobileKeyboardMode';
 import { runtimeFetch } from '@/lib/runtime-fetch';
 import { isCapacitorApp } from '@/lib/platform';
@@ -76,6 +85,8 @@ const persistRuntimeSettingsMirror = (settings: DesktopSettings, runtimeKey: str
     pwaAppName: settings.pwaAppName,
     mobileKeyboardMode: settings.mobileKeyboardMode,
     openCodeUpdateToastDismissedVersion: settings.openCodeUpdateToastDismissedVersion,
+    inputHistoryScope: settings.inputHistoryScope,
+    inputHistoryLimit: settings.inputHistoryLimit,
     dictationEnabled: settings.dictationEnabled,
     sttProvider: settings.sttProvider,
     sttServerUrl: settings.sttServerUrl,
@@ -595,6 +606,8 @@ const materializeAuthoritativeUiSettings = (settings: DesktopSettings): DesktopS
     userMessageRenderingMode: defaults.userMessageRenderingMode,
     collapsibleUserMessages: defaults.collapsibleUserMessages,
     messageStreamTransport: 'auto',
+    inputHistoryScope: DEFAULT_INPUT_HISTORY_SCOPE,
+    inputHistoryLimit: DEFAULT_INPUT_HISTORY_LIMIT,
     stickyUserHeader: defaults.stickyUserHeader,
     promptNavigatorEnabled: defaults.promptNavigatorEnabled,
     wideChatLayoutEnabled: defaults.wideChatLayoutEnabled,
@@ -643,6 +656,7 @@ const applyDesktopUiPreferences = (settings: DesktopSettings) => {
     ? window.__zustand_config_store__ ?? null
     : null;
   const queueStore = useMessageQueueStore.getState();
+  const inputHistoryStore = useInputHistoryStore.getState();
 
   if (typeof settings.workStatusPanelEnabled === 'boolean'
     && settings.workStatusPanelEnabled !== store.workStatusPanelEnabled) {
@@ -867,6 +881,16 @@ const applyDesktopUiPreferences = (settings: DesktopSettings) => {
     if (configStore && settings.messageStreamTransport !== configStore.settingsMessageStreamTransport) {
       configStore.setSettingsMessageStreamTransport(settings.messageStreamTransport);
     }
+  }
+  if (
+    typeof settings.inputHistoryScope === 'string'
+    && isInputHistoryScope(settings.inputHistoryScope)
+    && settings.inputHistoryScope !== inputHistoryStore.scope
+  ) {
+    inputHistoryStore.applyScope(settings.inputHistoryScope);
+  }
+  if (isInputHistoryLimit(settings.inputHistoryLimit) && settings.inputHistoryLimit !== inputHistoryStore.entryLimit) {
+    inputHistoryStore.applyEntryLimit(settings.inputHistoryLimit);
   }
   if (typeof settings.stickyUserHeader === 'boolean' && settings.stickyUserHeader !== store.stickyUserHeader) {
     store.setStickyUserHeader(settings.stickyUserHeader);
@@ -1202,6 +1226,12 @@ const sanitizeWebSettings = (payload: unknown): DesktopSettings | null => {
   }
   if (typeof candidate.streamingAutoFollowEnabled === 'boolean') {
     result.streamingAutoFollowEnabled = candidate.streamingAutoFollowEnabled;
+  }
+  if (typeof candidate.inputHistoryScope === 'string' && isInputHistoryScope(candidate.inputHistoryScope)) {
+    result.inputHistoryScope = candidate.inputHistoryScope;
+  }
+  if (typeof candidate.inputHistoryLimit === 'number' && isInputHistoryLimit(candidate.inputHistoryLimit)) {
+    result.inputHistoryLimit = candidate.inputHistoryLimit;
   }
   if (typeof candidate.sessionRecapEnabled === 'boolean') {
     result.sessionRecapEnabled = candidate.sessionRecapEnabled;

@@ -1,7 +1,18 @@
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
+import {
+  DEFAULT_INPUT_HISTORY_LIMIT,
+} from './input-history-scope.js';
 import { createSettingsHelpers } from './settings-helpers.js';
 import { createSettingsNormalizationRuntime } from './settings-normalization-runtime.js';
+
+const testFilePath = fileURLToPath(import.meta.url);
+const packagesWebDir = join(dirname(testFilePath), '..', '..', '..');
 
 const createTestHelpers = () => createSettingsHelpers({
   normalizePathForPersistence: (value) => value,
@@ -58,6 +69,66 @@ const createTestHelpersWithRealSanitizers = () => {
 };
 
 describe('settings helpers', () => {
+  it('imports from the packed @openchamber/web tarball without escaping the published package', async () => {
+    const tempRoot = mkdtempSync(join(tmpdir(), 'settings-helpers-pack-'));
+    const packDir = join(tempRoot, 'pack');
+    const extractDir = join(tempRoot, 'extract');
+
+    try {
+      mkdirSync(packDir);
+      mkdirSync(extractDir);
+      execFileSync('npm', ['pack', '--silent', '--pack-destination', packDir], {
+        cwd: packagesWebDir,
+        stdio: 'pipe',
+      });
+
+      const tarballName = readdirSync(packDir).find((entry) => entry.endsWith('.tgz'));
+      expect(tarballName).toBeTruthy();
+
+      execFileSync('tar', ['-xzf', join(packDir, tarballName), '-C', extractDir], {
+        stdio: 'pipe',
+      });
+
+      const extractedModule = await import(
+        pathToFileURL(join(extractDir, 'package', 'server', 'lib', 'opencode', 'settings-helpers.js')).href
+      );
+
+      const helpers = extractedModule.createSettingsHelpers({
+        normalizePathForPersistence: (value) => value,
+        normalizeDirectoryPath: (value) => value,
+        normalizeTunnelBootstrapTtlMs: (value) => value,
+        normalizeTunnelSessionTtlMs: (value) => value,
+        normalizeTunnelProvider: (value) => value,
+        normalizeTunnelMode: (value) => value,
+        normalizeOptionalPath: (value) => value,
+        normalizeManagedRemoteTunnelHostname: (value) => value,
+        normalizeManagedRemoteTunnelPresets: () => undefined,
+        normalizeManagedRemoteTunnelPresetTokens: () => undefined,
+        sanitizeTypographySizesPartial: () => undefined,
+        normalizeStringArray: (input) => input,
+        sanitizeModelRefs: () => undefined,
+        sanitizeSkillCatalogs: () => undefined,
+        sanitizeProjects: () => undefined,
+      });
+
+      expect(helpers.sanitizeSettingsUpdate({ inputHistoryScope: 'global' })).toEqual({
+        inputHistoryScope: 'global',
+      });
+      expect(helpers.sanitizeSettingsUpdate({ inputHistoryScope: 'session' })).toEqual({
+        inputHistoryScope: 'session',
+      });
+      expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: 40 })).toEqual({
+        inputHistoryLimit: 40,
+      });
+      expect(helpers.formatSettingsResponse({})).toMatchObject({
+        inputHistoryScope: 'global',
+        inputHistoryLimit: DEFAULT_INPUT_HISTORY_LIMIT,
+      });
+    } finally {
+      rmSync(tempRoot, { recursive: true, force: true });
+    }
+  });
+
   it('accepts only booleans for draft starter visibility', () => {
     const helpers = createTestHelpers();
 
@@ -149,6 +220,74 @@ describe('settings helpers', () => {
     const helpers = createTestHelpers();
 
     expect(helpers.sanitizeSettingsUpdate({ messageStreamTransport: 'websocket' })).toEqual({});
+  });
+
+  it('accepts inputHistoryScope as a persisted shared setting', () => {
+    const helpers = createTestHelpers();
+
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryScope: 'global' })).toEqual({
+      inputHistoryScope: 'global',
+    });
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryScope: 'session' })).toEqual({
+      inputHistoryScope: 'session',
+    });
+  });
+
+  it('accepts valid inputHistoryLimit values as a persisted shared setting', () => {
+    const helpers = createTestHelpers();
+
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: 1 })).toEqual({
+      inputHistoryLimit: 1,
+    });
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: 40 })).toEqual({
+      inputHistoryLimit: 40,
+    });
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: 100 })).toEqual({
+      inputHistoryLimit: 100,
+    });
+  });
+
+  it('rejects invalid inputHistoryLimit values', () => {
+    const helpers = createTestHelpers();
+
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: 0 })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: 101 })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: 1.5 })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: '40' })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: Number.NaN })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: Number.POSITIVE_INFINITY })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryLimit: Number.NEGATIVE_INFINITY })).toEqual({});
+  });
+
+  it('rejects invalid inputHistoryScope values', () => {
+    const helpers = createTestHelpers();
+
+    expect(helpers.sanitizeSettingsUpdate({ inputHistoryScope: 'workspace' })).toEqual({});
+  });
+
+  it('defaults inputHistoryScope to global in formatted settings responses', () => {
+    const helpers = createTestHelpers();
+
+    expect(helpers.formatSettingsResponse({ inputHistoryScope: 'session' })).toMatchObject({
+      inputHistoryScope: 'session',
+    });
+    expect(helpers.formatSettingsResponse({})).toMatchObject({
+      inputHistoryScope: 'global',
+    });
+  });
+
+  it('defaults missing inputHistoryLimit to 40 in formatted settings responses and preserves valid values', () => {
+    const helpers = createTestHelpers();
+
+    expect(helpers.formatSettingsResponse({})).toMatchObject({
+      inputHistoryLimit: DEFAULT_INPUT_HISTORY_LIMIT,
+    });
+    expect(helpers.formatSettingsResponse({ inputHistoryLimit: 1 })).toMatchObject({
+      inputHistoryLimit: 1,
+    });
+    expect(helpers.formatSettingsResponse({ inputHistoryLimit: 100 })).toMatchObject({
+      inputHistoryLimit: 100,
+    });
   });
 
   it('sanitizes the persisted terminal shell', () => {

@@ -1,5 +1,6 @@
 import type { WorktreeMetadata } from '@/types/worktree';
 import type { DraftStarterRef } from '@/lib/draftStarters';
+import type { InputHistoryScope } from '@/lib/inputHistoryScope';
 
 type RuntimePlatform = 'web' | 'desktop' | 'vscode';
 
@@ -722,6 +723,8 @@ export interface SettingsPayload {
   sessionRetentionAction?: 'archive' | 'delete';
   followUpBehavior?: 'steer' | 'queue';
   queueModeEnabled?: boolean;
+  inputHistoryScope?: InputHistoryScope;
+  inputHistoryLimit?: number;
   gitmojiEnabled?: boolean;
   inputSpellcheckEnabled?: boolean;
   enterToSend?: boolean;

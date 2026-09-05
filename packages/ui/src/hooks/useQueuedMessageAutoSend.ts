@@ -10,6 +10,7 @@ import { getDirectoryState } from '@/sync/sync-refs';
 import { useDirectorySync } from '@/sync/sync-context';
 import { getRuntimeKey } from '@/lib/runtime-switch';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
+import { createInputHistorySubmission } from '@/stores/useInputHistoryStore';
 
 type SessionStatusType = 'idle' | 'busy' | 'retry';
 
@@ -86,6 +87,7 @@ export const buildQueuedAutoSendPayload = (queue: QueuedMessage[]) => {
   // file mentions resolved, and the context it was queued with following it.
   return {
     queuedMessageId: queued.id,
+    historySubmissions: [createInputHistorySubmission(queued.content, queued.attachments ?? [])],
     primaryText: queued.text,
     primaryAttachments: queued.attachments ?? [],
     agentMentionName: queued.agentMention,
@@ -116,9 +118,12 @@ export const sendQueuedAutoSendPayload = (
     payload.agentMentionName,
     payload.additionalParts.length > 0 ? payload.additionalParts : undefined,
     resolved.variant,
-    'normal',
-    { target },
-  );
+      'normal',
+      {
+        target,
+        historySubmissions: payload.historySubmissions,
+      },
+    );
 };
 
 const resolveSessionSendConfig = (sessionId: string) => {
