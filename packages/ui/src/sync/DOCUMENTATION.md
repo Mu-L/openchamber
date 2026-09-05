@@ -382,11 +382,36 @@ reports failure instead of committing. The deletion already accepted by the
 server stays deleted there; its persisted state is left as harmless stale
 metadata and the next authoritative load reconciles it.
 
+### Missing directory relocation (active sessions)
+
+The same directory can disappear under an active session: a worktree removed
+by the agent or by hand leaves the session, its tabs, and its prompts pointed
+at a path that no longer exists, and the terminal server answers every create
+and restart with `Invalid working directory`. `relocateSessionFromMissingDirectory`
+(`session-actions.ts`) applies the restore fallback's gate to a live session:
+an exact `missing` probe, the destination resolved from the server `projectID`,
+and `available`, `unknown`, probe failures, project-root sessions, and sessions
+without a project left untouched. Every session of the root's subtree still
+stranded in that directory moves with it, root first, so the session the user
+is looking at is usable even when a descendant move fails; the result names
+the sessions already moved. Moves carry no changes because the source is gone.
+
+`session-ui-store.recoverMissingSessionDirectory` owns the user-visible side:
+one shared attempt per runtime and session, the worktree hint cleared for each
+moved session (it is the first thing every directory lookup reads), the current
+session re-selected through `setCurrentSession` so the active directory,
+project, and OpenCode client follow it, and one toast naming the destination.
+It runs from two places: a terminal create/restart rejected with the server's
+`TERMINAL_CWD_MISSING` code, and session activation for any session whose
+directory is neither a registered project root nor a managed chat directory
+(the same probe a reopened draft performs on its inherited directory). VS Code
+registers no worktrees, so activation never probes there.
+
 ## The golden rule
 
 ### Managed chat directories
 
-Ordinary user-created drafts default to the OpenChamber-managed Chat target. The first submit creates one isolated directory under the server-resolved managed chats root (`OPENCHAMBER_CHATS_DIR`, default `~/.config/openchamber/chats`) as `YYYY-MM-DD/session-<id>` before creating the OpenCode session. That root acts as a system project owner for sidebar membership and Notes, Todo, Plans, pinned knowledge, and project memory, but it is never persisted or rendered as a user project and exposes no Git/worktree controls. Project and worktree actions remain explicit targets. Archiving retains a chat directory so restore remains lossless. Confirmed deletion accepts only descendants of the configured root or the actual server home's legacy chats root. It rejects both shared roots themselves, dot segments, lookalike paths elsewhere, and a runtime switch during root resolution. It never removes project directories.
+Ordinary user-created drafts default to the OpenChamber-managed Chat target. The first submit creates one isolated directory under the server-resolved managed chats root (`OPENCHAMBER_CHATS_DIR`, default `~/.config/openchamber/chats`) as `YYYY-MM-DD/session-<id>` before creating the OpenCode session. That root acts as a system project owner for sidebar membership and Notes, Todo, Plans, pinned knowledge, and project memory, but it is never persisted or rendered as a user project and exposes no Git/worktree controls. Project and worktree actions remain explicit targets. Archiving retains a chat directory so restore remains lossless. Confirmed deletion accepts only descendants of the configured root or the actual server home's legacy chats root. It rejects both shared roots themselves, dot segments, lookalike paths elsewhere, and a runtime switch during root resolution. It also removes a directory only once no other known session still resolves to it: forks, side threads, and subagents share the directory of the chat that created them, and OpenCode fails every prompt in a session whose directory is gone. The deleted session's own subtree does not count, because the server cascade-deletes it, and an unloaded global cache keeps the directory because it cannot prove it is unused. It never removes project directories.
 
 Typing the first character in a managed Chat draft starts one deduplicated directory preparation for that draft. Materialization consumes the prepared directory before `createSession`, removing filesystem creation from the usual submit path. Closing the draft, changing it to a project target, or completing preparation after the runtime/draft changed deletes the unclaimed directory. A create failure also deletes the consumed directory.
 
