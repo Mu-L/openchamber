@@ -24,9 +24,12 @@ title: Reliable project actions
 
 ### Fixes
 - **Settings/Providers:** editing a custom provider keeps all of its model settings, and VS Code saves the protocol you chose (thanks to @hehuaiyu).
+- Sessions: opening a session from a deleted worktree moves it back to the project (thanks to @yulia-ivashko).
+- Sessions: restoring an archived session from a deleted worktree moves it back to the project (thanks to @mattv8 and @yulia-ivashko).
+- Sidebar: a missing worktree stays visible with a warning until you remove it (thanks to @yulia-ivashko).
+- Sessions: forks, side threads, and subagents keep working after their original chat is deleted (thanks to @yulia-ivashko).
 - Chat: huge patches in tool cards open without freezing the page (thanks to @karimodm).
 - Files: an open file stops flickering through reloads when nothing changed, and an edit made in another app shows up in place while your unsaved changes stay (thanks to @IbrahimKhan12).
-- Sessions: restoring an archived session whose worktree was deleted puts it back into its project (thanks to @mattv8).
 - Chat: pressing Enter to confirm text on a Japanese, Chinese, or Korean keyboard no longer sends a comment by accident (thanks to @ChangeHow).
 - Chat: a queued slash command with attached context is delivered correctly, and the "Queued messages" card disappears after the last message goes out.
 - Goal Mode: when a reply is cut off by the length limit, the goal continues, and Resume gives it another try (thanks to @bashrusakh).
