@@ -366,6 +366,12 @@ const pendingSessionMaterializations = new Map<string, PendingSessionMaterializa
 // the same directory.
 const statusPollingDirectories = new Set<string>()
 
+// Directories with a child-session discovery pull in flight. Discovery now
+// pages through the session list, so one pull can outlast the watchdog
+// interval; two overlapping pulls would each snapshot the same pre-commit
+// session list and append the same child twice.
+const childDiscoveryDirectories = new Set<string>()
+
 // Deferred completion polls awaiting their delay, keyed by directory+session so
 // a burst of completing messages schedules one check.
 const pendingMessageCompletionPolls = new Map<string, ReturnType<typeof setTimeout>>()
@@ -2513,6 +2519,8 @@ export function SyncProvider(props: {
       parentSessionIds: string[],
     ) => {
       if (parentSessionIds.length === 0) return
+      if (childDiscoveryDirectories.has(directory)) return
+      childDiscoveryDirectories.add(directory)
       try {
         // Paginated so directories with > pageSize sessions are fully
         // discovered; a single 200-record page silently truncated the list and
@@ -2557,6 +2565,8 @@ export function SyncProvider(props: {
         }
       } catch {
         // Best-effort — next tick will retry.
+      } finally {
+        childDiscoveryDirectories.delete(directory)
       }
     }
 
