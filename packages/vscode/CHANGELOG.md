@@ -1,3 +1,25 @@
+## [Unreleased]
+
+### New
+
+- **Comments on code.** Select lines, click the `+` in the gutter or right-click → OpenChamber → Add Comment, and write your note. It stays pinned to the code and goes out with your next message as a context card. Works in diffs too (thanks to @felipegenef).
+- The extension is available in Turkish (thanks to @fitzgpt).
+
+### Improvements
+
+- Chat: Markdown tables are readable again, columns take the width their content needs (thanks to @ChangeHow).
+- OpenCode config paths respect `XDG_CONFIG_HOME`.
+- A fresh install uses VS Code's language until you choose one in Settings.
+
+### Fixes
+
+- Settings/Providers: editing a custom provider keeps all of its model settings and saves the protocol you chose (thanks to @hehuaiyu).
+- Chat: huge patches in tool cards open without freezing the view (thanks to @karimodm).
+- Chat: pressing Enter to confirm text on a Japanese, Chinese, or Korean keyboard no longer sends a comment by accident (thanks to @ChangeHow).
+- Sessions: subagent sessions are found in projects with more than 200 sessions (thanks to @bashrusakh).
+- Permission auto-accept works again with the stable OpenCode (thanks to @bashrusakh).
+- On Windows, the status command and adding a folder to the workspace handle drive-letter case correctly (thanks to @pttydou).
+
 ## [1.22.1] - 2026-09-04
 
 - **OpenCode Go:** the usage request the extension sends to OpenCode Go now carries the `x-opencode-session` header that OpenCode Go requires from 6 September. Chat traffic already had it, because it goes through OpenCode.
