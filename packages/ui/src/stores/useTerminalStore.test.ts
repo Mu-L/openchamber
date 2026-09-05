@@ -602,3 +602,16 @@ test('a listing started before closing an action cannot resurrect its tab', () =
   store.reconcileServerSessions('/repo', [session], { startedActionMutationRevisions });
   expect(store.getDirectoryState('/repo')?.tabs.some(tab => tab.purpose.type === 'project-action')).toBe(false);
 });
+
+test('a Windows directory keys one store entry however the caller spells it', () => {
+  useTerminalStore.getState().clearAll();
+  const store = useTerminalStore.getState();
+  const session: TerminalServerSession = { sessionId: 'run', cwd: 'c:\\repo', status: 'running', createdAt: 1, purpose: { type: 'project-action', actionId: 'dev', executionId: 'run' } };
+  // The sidebar reconciles from the server's `cwd`; the terminal panel and the
+  // project actions button pass the directory they were handed.
+  store.reconcileServerSessions('c:\\repo', [session]);
+
+  expect(useTerminalStore.getState().sessions.size).toBe(1);
+  expect(directoryMayHaveActiveProjectAction(store.getDirectoryState('C:/repo/'))).toBe(true);
+  expect(store.getDirectoryState('C:\\repo')?.tabs).toHaveLength(1);
+});

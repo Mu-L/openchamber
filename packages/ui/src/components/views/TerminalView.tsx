@@ -62,7 +62,7 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ visible, directory }
     const targetDirectory = directory ?? null;
     const terminalDirectory = targetDirectory || contextDirectory;
     const hasExplicitTerminalTarget = targetDirectory !== null;
-    const directoryTerminalState = useTerminalStore((s) => terminalDirectory ? s.sessions.get(terminalDirectory) : undefined);
+    const directoryTerminalState = useTerminalStore((s) => terminalDirectory ? s.getDirectoryState(terminalDirectory) : undefined);
     const terminalHydrated = useTerminalStore((s) => s.hasHydrated);
     const ensureDirectory = useTerminalStore((s) => s.ensureDirectory);
     const createTab = useTerminalStore((s) => s.createTab);

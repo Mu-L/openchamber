@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'bun:test';
-import type { TerminalAPI, TerminalHandlers } from './api/types';
+import type { TerminalAPI, TerminalHandlers, TerminalServerSession } from './api/types';
+import { normalizeTerminalDirectory } from './pathNormalization';
 import {
   createProjectActionTerminalSession,
+  groupTerminalSessionsByDirectory,
   normalizeProjectActionCommand,
   reconcileTerminalSessionAuthority,
   stopProjectActionTerminalSession,
@@ -300,4 +302,23 @@ test('cancelling a local request does not close a run adopted from another clien
     isRunStillExpected: () => false,
   })).rejects.toThrow('PROJECT_ACTION_RUN_CANCELLED');
   expect(closed).toEqual([]);
+});
+
+test('a whole-server listing groups under the same directory keys the terminal store uses', () => {
+  // The sidebar reconciles by these keys while the terminal panel reconciles by
+  // the store's own key for the same folder; a Windows path must not split into
+  // two namespaces (`c:\\repo` from the server, `C:/repo` from the sidebar).
+  const session = (sessionId: string, cwd: string): TerminalServerSession => ({
+    sessionId, cwd, status: 'running', createdAt: 1, mode: 'command',
+    purpose: { type: 'project-action', actionId: 'dev', executionId: sessionId },
+  });
+  const grouped = groupTerminalSessionsByDirectory([
+    session('a', 'c:\\repo'),
+    session('b', 'C:/repo/'),
+    session('c', '/srv/app/'),
+  ]);
+
+  expect([...grouped.keys()].sort()).toEqual(['/srv/app', 'C:/repo']);
+  expect(grouped.get('C:/repo')?.map(entry => entry.sessionId)).toEqual(['a', 'b']);
+  expect(normalizeTerminalDirectory('c:\\repo')).toBe('C:/repo');
 });

@@ -1,5 +1,5 @@
 import type { TerminalAPI } from './api/types';
-import { normalizeProjectActionDirectory } from './projectActions';
+import { normalizeTerminalDirectory } from './pathNormalization';
 import { groupTerminalSessionsByDirectory, reconcileTerminalSessionAuthority } from './projectActionTerminal';
 import { getRuntimeKey, subscribeRuntimeEndpointChanged } from './runtime-switch';
 
@@ -19,7 +19,7 @@ export const observeTerminalSessions = (
   listener: Listener,
 ): (() => void) => {
   if (!terminal.listSessions) return () => {};
-  const key = normalizeProjectActionDirectory(directory);
+  const key = normalizeTerminalDirectory(directory);
   let observation = observations.get(terminal);
   if (!observation) {
     const scopes = new Map<string, Scope>();

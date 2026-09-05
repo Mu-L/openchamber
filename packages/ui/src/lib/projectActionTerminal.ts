@@ -1,16 +1,8 @@
-import { normalizeProjectActionDirectory } from './projectActions';
+import { normalizeTerminalDirectory as normalizeDirectory } from './pathNormalization';
 import { getRuntimeKey } from './runtime-switch';
 import type { CreateTerminalOptions, TerminalAPI, TerminalServerSession, TerminalSession, TerminalSessionPurpose } from './api/types';
 
 type TerminalActionMutationRevisions = ReadonlyMap<string, number>;
-
-const normalizeDirectory = (dir: string): string => {
-  let normalized = dir.trim();
-  while (normalized.length > 1 && normalized.endsWith('/')) {
-    normalized = normalized.slice(0, -1);
-  }
-  return normalized;
-};
 
 type ProjectActionTerminalCreateOptions = Omit<Extract<CreateTerminalOptions, { mode: 'command' }>, 'mode' | 'command' | 'sessionId'>;
 
@@ -256,10 +248,11 @@ export const reconcileTerminalSessionAuthority = (
 };
 
 
+/** Groups a whole-server listing into the directory keys the terminal store uses. */
 export const groupTerminalSessionsByDirectory = (sessions: TerminalServerSession[]): Map<string, TerminalServerSession[]> => {
   const groups = new Map<string, TerminalServerSession[]>();
   for (const session of sessions) {
-    const directory = normalizeProjectActionDirectory(session.cwd);
+    const directory = normalizeDirectory(session.cwd);
     const group = groups.get(directory);
     if (group) group.push(session);
     else groups.set(directory, [session]);

@@ -226,13 +226,16 @@ export const ProjectActionsButton = ({
     contextHostDirectoryRef.current = contextHostDirectory;
   }, [contextHostDirectory]);
 
+  // The store owns its directory key form; reading `sessions` directly with a
+  // project-action-normalized path misses the entry whenever the two spellings
+  // differ (Windows drive letters and separators).
   const directoryTerminalState = useTerminalStore((state) => (
-    normalizedDirectory ? state.sessions.get(normalizedDirectory) : undefined
+    normalizedDirectory ? state.getDirectoryState(normalizedDirectory) : undefined
   ));
 
   const projectTerminalState = useTerminalStore((state) => (
     normalizedProjectDirectory && normalizedProjectDirectory !== normalizedDirectory
-      ? state.sessions.get(normalizedProjectDirectory)
+      ? state.getDirectoryState(normalizedProjectDirectory)
       : undefined
   ));
 
@@ -1065,7 +1068,7 @@ export const ProjectActionsButton = ({
   const previewRun = previewAction ? projectActionRuns[toProjectActionRunKey(executionDirectoryFor(previewAction), previewAction.id)] : null;
   const selectedRunPreviewUrl = useTerminalStore((state) => {
     if (!previewRun) return null;
-    return state.sessions.get(previewRun.directory)?.tabs.find((tab) => tab.id === previewRun.tabId)?.previewUrl ?? null;
+    return state.getDirectoryState(previewRun.directory)?.tabs.find((tab) => tab.id === previewRun.tabId)?.previewUrl ?? null;
   });
 
   if (runtime.isVSCode || (!allowMobile && isMobile) || !stableProjectRef || !normalizedDirectory) {

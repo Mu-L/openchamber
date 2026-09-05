@@ -115,6 +115,10 @@ run monitor, and made Zustand persist rewrite the session-storage snapshot per c
 
 Invariants to preserve when editing:
 
+- Directory keys come from `normalizeTerminalDirectory` (`lib/pathNormalization.ts`) and
+  nothing else. Server `cwd` strings, sidebar project paths and the panel's own directory
+  all pass through it, so a folder has exactly one entry on every platform. Read `sessions`
+  through `getDirectoryState`, never by indexing the map with a path normalized elsewhere.
 - Output actions (`appendToBuffer`, `replaceBuffer`) must leave `sessions` referentially
   unchanged; only `buffers` and `nextChunkId` may change.
 - Buffer entries are owned by their tab. `closeTab`, `removeDirectory`, `clearAll`, and
