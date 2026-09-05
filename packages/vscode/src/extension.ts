@@ -489,15 +489,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // the authoritative list, so the threads follow what the webview reports.
   const inlineCommentThreads = new InlineCommentThreads({
     submitDraft: async (payload) => {
-      // A comment is written against code the user is reading, so it cannot
-      // require them to have opened a chat first: with no session tab open,
-      // one is opened, exactly as the toolbar's new-session button does.
-      const panelId = sessionEditorProvider?.openWithLineComment(payload, activeSessionId);
+      // Same routing as Add to Context: a session tab the user is working in
+      // takes the comment; otherwise it goes to the sidebar, revealing it when
+      // needed. Opening a fresh tab for a comment left the user's sidebar chat
+      // ignored and a new tab in the way.
+      const panelId = sessionEditorProvider?.addLineCommentToActivePanel(payload);
       if (panelId) {
         return panelId;
       }
-      // No session editor at all (provider gone): fall back to the sidebar
-      // rather than accepting a comment that has nowhere to land.
       if (!(await revealChatViewForPayload())) {
         return null;
       }

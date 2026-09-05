@@ -376,39 +376,6 @@ export class SessionEditorPanelProvider {
   }
 
   /**
-   * Delivers a comment to a session tab, opening one when none exists.
-   *
-   * A comment is written against code the user is reading, so it must not
-   * depend on their having opened a chat first. With no tab open this behaves
-   * like the toolbar's new-session button, then delivers into that tab once its
-   * webview is listening.
-   */
-  public openWithLineComment(payload: LineCommentPayload, activeSessionId: string | null): string | null {
-    if (!payload.relativePath.trim()) {
-      return null;
-    }
-
-    const accepted = this.addLineCommentToActivePanel(payload);
-    if (accepted) {
-      return accepted;
-    }
-
-    if (activeSessionId) {
-      this.createOrShow(activeSessionId);
-    } else {
-      this.createOrShowNewSession();
-    }
-
-    const entry = this._getActivePanelEntry();
-    if (!entry) {
-      return null;
-    }
-
-    entry.pendingLineComments.push(payload);
-    return entry.id;
-  }
-
-  /**
    * Drops a draft the user removed from its editor thread.
    *
    * Sent to every panel, not just the active one: each webview owns its own
