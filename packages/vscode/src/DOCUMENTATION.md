@@ -201,6 +201,10 @@ half-translated locale looks like a shipped feature. `localizationBundles.test.t
 enforces that, and it is the check to run whenever a feature adds a new string.
 
 The pre-bundle loading splash in `webviewHtml.ts` is separate: its strings are
-inlined in the generated HTML and chosen from OpenChamber's own saved locale
-(`openchamber.i18n.v1` in webview localStorage), not from VS Code's display
-language, because the splash renders before the webview bundle loads.
+inlined in the generated HTML because the splash renders before the webview
+bundle loads. It picks them from OpenChamber's own saved locale
+(`openchamber.i18n.v1` in webview localStorage) and, before the user has
+chosen one, from VS Code's display language, which the HTML exposes as
+`window.__OPENCHAMBER_HOST_LANGUAGE__`. The UI bundle reads the same value as
+its default locale (`detectInitialLocale`), so a fresh install in a supported
+language starts in that language on both the splash and the app.
