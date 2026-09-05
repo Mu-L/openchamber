@@ -1,128 +1,126 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { fetchQuota, isConfigured } from './hyper.js';
 
-vi.mock('../../opencode/auth.js', () => ({
-  readAuthFile: () => ({ hyper: { key: 'test-token' } }),
-}));
+const readAuth = () => ({ hyper: { key: 'test-token' } });
 
-import { fetchQuota } from './hyper.js';
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
-
-const mockResponse = (body, init = {}) => ({
-  ok: true,
-  status: 200,
-  json: async () => body,
-  ...init,
-});
-
-// Documented payload shape from https://hyper.charm.land/docs/api/credits.html
-// The balance is denominated in Hypercredits; 1 credit = $0.05.
+// https://hyper.charm.land/docs/api/credits.html documents the balance payload.
+// https://hyper.charm.land/faq defines one Hypercredit as $0.05.
 describe('Charm Hyper quota provider', () => {
-  it('builds credits and credits_balance windows from documented payload (numeric balance)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse({ balance: 100 })));
-
-    const result = await fetchQuota();
+  it.each([
+    [100, '100', '$5.00'],
+    ['50', '50', '$2.50'],
+    [25.5, '25.50', '$1.28'],
+    [0, '0', '$0.00'],
+    ['0', '0', '$0.00'],
+  ])('formats balance %s without an untranslated unit', async (balance, credits, dollars) => {
+    const result = await fetchQuota({
+      readAuth,
+      fetchImpl: async () => Response.json({ balance }),
+    });
 
     expect(result.ok).toBe(true);
     expect(result.providerId).toBe('hyper');
-
-    const balanceWindow = result.usage.windows.credits_balance;
-    expect(balanceWindow).toBeDefined();
-    expect(balanceWindow.valueLabel).toBe('$5.00');
-    expect(balanceWindow.usedPercent).toBeNull();
-    expect(balanceWindow.windowSeconds).toBeNull();
-    expect(balanceWindow.resetAt).toBeNull();
-
-    const creditsWindow = result.usage.windows.credits;
-    expect(creditsWindow).toBeDefined();
-    expect(creditsWindow.valueLabel).toBe('100 credits');
-    expect(creditsWindow.usedPercent).toBeNull();
-    expect(creditsWindow.windowSeconds).toBeNull();
-    expect(creditsWindow.resetAt).toBeNull();
+    expect(result.configured).toBe(true);
+    expect(result.usage.windows.credits.valueLabel).toBe(credits);
+    expect(result.usage.windows.credits_balance.valueLabel).toBe(dollars);
+    for (const window of Object.values(result.usage.windows)) {
+      expect(window.usedPercent).toBeNull();
+      expect(window.remainingPercent).toBeNull();
+      expect(window.windowSeconds).toBeNull();
+      expect(window.resetAt).toBeNull();
+      expect(window.resetAfterSeconds).toBeNull();
+    }
   });
 
-  it('tolerates a string balance', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse({ balance: '50' })));
+  it.each([
+    {}, null, [], { balance: '' }, { balance: ' \t ' }, { balance: 'NaN' },
+    { balance: 'Infinity' }, { balance: null }, { balance: true }, { balance: [] },
+    { balance: {} },
+  ])('rejects invalid payload %j instead of showing zero', async (payload) => {
+    const result = await fetchQuota({ readAuth, fetchImpl: async () => Response.json(payload) });
 
-    const result = await fetchQuota();
+    expect(result.ok).toBe(false);
+    expect(result.configured).toBe(true);
+    expect(result.error).toBe('No quota data in response');
+    expect(result.usage).toBeNull();
+  });
 
+  it.each([
+    { hyper: { key: 'test-token' } },
+    { hyper: { token: 'test-token' } },
+    { hyper: 'test-token' },
+    { hyper: { key: '  ', token: 'test-token' } },
+    { hyper: { key: 42, token: 'test-token' } },
+  ])('uses a validated credential for the documented request', async (auth) => {
+    expect(isConfigured(auth)).toBe(true);
+    let requests = 0;
+    const result = await fetchQuota({
+      readAuth: () => auth,
+      fetchImpl: async (url, options) => {
+        requests += 1;
+        expect(url).toBe('https://hyper.charm.land/v1/credits');
+        expect(options.method).toBe('GET');
+        expect(new Headers(options.headers).get('Authorization')).toBe('Bearer test-token');
+        expect(options.signal).toBeInstanceOf(AbortSignal);
+        return Response.json({ balance: 100 });
+      },
+    });
+
+    expect(requests).toBe(1);
     expect(result.ok).toBe(true);
-    expect(result.usage.windows.credits.valueLabel).toBe('50 credits');
-    expect(result.usage.windows.credits_balance.valueLabel).toBe('$2.50');
+    expect(JSON.stringify(result)).not.toContain('test-token');
   });
 
-  it('formats a fractional balance in both windows', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse({ balance: 25.5 })));
+  it.each([{}, { hyper: { key: '' } }, { hyper: { key: '  ' } }, { hyper: { key: 42 } }])(
+    'does not request usage without a valid credential',
+    async (auth) => {
+      expect(isConfigured(auth)).toBe(false);
+      let requests = 0;
+      const result = await fetchQuota({
+        readAuth: () => auth,
+        fetchImpl: async () => {
+          requests += 1;
+          return Response.json({ balance: 100 });
+        },
+      });
 
-    const result = await fetchQuota();
+      expect(requests).toBe(0);
+      expect(result.ok).toBe(false);
+      expect(result.configured).toBe(false);
+      expect(result.error).toBe('Not configured');
+    },
+  );
 
-    expect(result.ok).toBe(true);
-    expect(result.usage.windows.credits.valueLabel).toBe('25.50 credits');
-    expect(result.usage.windows.credits_balance.valueLabel).toBe('$1.28');
-  });
-
-  it('maps 401 to session-expired error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => ({}) }));
-
-    const result = await fetchQuota();
+  it.each([
+    [401, 'Session expired — please re-authenticate with Charm Hyper'],
+    [403, 'Session expired — please re-authenticate with Charm Hyper'],
+    [429, 'API error: 429'],
+    [500, 'API error: 500'],
+  ])('reports HTTP %s as a failure', async (status, error) => {
+    const result = await fetchQuota({ readAuth, fetchImpl: async () => new Response(null, { status }) });
 
     expect(result.ok).toBe(false);
-    expect(result.error).toBe('Session expired — please re-authenticate with Charm Hyper');
+    expect(result.configured).toBe(true);
+    expect(result.error).toBe(error);
+    expect(result.usage).toBeNull();
   });
 
-  it('maps 403 to session-expired error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403, json: async () => ({}) }));
-
-    const result = await fetchQuota();
-
-    expect(result.ok).toBe(false);
-    expect(result.error).toBe('Session expired — please re-authenticate with Charm Hyper');
-  });
-
-  it('reports invalid-response on JSON parse failure', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => { throw new SyntaxError('Unexpected token'); },
-    }));
-
-    const result = await fetchQuota();
-
-    expect(result.ok).toBe(false);
+  it('reports invalid JSON as a parse failure', async () => {
+    const result = await fetchQuota({ readAuth, fetchImpl: async () => new Response('{') });
     expect(result.error).toBe('Invalid response from provider');
-  });
-
-  it('returns no-quota-data on a 200 payload with no balance', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse({})));
-
-    const result = await fetchQuota();
-
     expect(result.ok).toBe(false);
     expect(result.configured).toBe(true);
-    expect(result.error).toBe('No quota data in response');
     expect(result.usage).toBeNull();
   });
 
-  it('returns no-quota-data on an empty-string balance', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse({ balance: '' })));
-
-    const result = await fetchQuota();
-
+  it.each([
+    [new DOMException('Timed out', 'TimeoutError'), 'Request timed out'],
+    [new Error('Network unavailable'), 'Network unavailable'],
+  ])('reports request failure', async (failure, message) => {
+    const result = await fetchQuota({ readAuth, fetchImpl: async () => { throw failure; } });
+    expect(result.error).toBe(message);
     expect(result.ok).toBe(false);
     expect(result.configured).toBe(true);
-    expect(result.error).toBe('No quota data in response');
     expect(result.usage).toBeNull();
-  });
-
-  it('keeps a literal zero balance as a valid valueLabel', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse({ balance: 0 })));
-
-    const result = await fetchQuota();
-
-    expect(result.ok).toBe(true);
-    expect(result.usage.windows.credits.valueLabel).toBe('0 credits');
-    expect(result.usage.windows.credits_balance.valueLabel).toBe('$0.00');
   });
 });

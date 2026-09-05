@@ -155,10 +155,6 @@ type DeepseekPayload = {
   }>;
 };
 
-type HyperPayload = {
-  balance?: number | string;
-};
-
 type NeuralwattPayload = {
   balance?: {
     credits_remaining_usd?: number | string;
@@ -857,8 +853,7 @@ export const listConfiguredQuotaProviders = () => {
     configured.add('deepseek');
   }
 
-  const hyperAuth = normalizeAuthEntry(getAuthEntry(auth, ['hyper']));
-  if (hyperAuth && ((hyperAuth as Record<string, unknown>).key || (hyperAuth as Record<string, unknown>).token)) {
+  if (getHyperApiKey(auth)) {
     configured.add('hyper');
   }
 
@@ -2798,10 +2793,18 @@ const fetchDeepseekQuota = async (): Promise<ProviderResult> => {
 const HYPER_QUOTA_URL = 'https://hyper.charm.land/v1/credits';
 const HYPER_CREDIT_TO_USD = 0.05;
 
-const fetchHyperQuota = async (): Promise<ProviderResult> => {
-  const auth = readAuthFile();
-  const entry = normalizeAuthEntry(getAuthEntry(auth, ['hyper'])) as Record<string, unknown> | null;
-  const apiKey = (entry?.key as string | undefined) ?? (entry?.token as string | undefined);
+const getHyperApiKey = (auth: AuthFile) => {
+  const entry = normalizeAuthEntry(getAuthEntry(auth, ['hyper']));
+  return asNonEmptyString(entry?.key) ?? asNonEmptyString(entry?.token);
+};
+
+type HyperQuotaDependencies = {
+  readAuth?: () => AuthFile;
+  fetchImpl?: (url: string, options: RequestInit) => Promise<Response>;
+};
+
+export const fetchHyperQuota = async ({ readAuth = readAuthFile, fetchImpl = fetch }: HyperQuotaDependencies = {}): Promise<ProviderResult> => {
+  const apiKey = getHyperApiKey(readAuth());
 
   if (!apiKey) {
     return buildResult({
@@ -2816,7 +2819,7 @@ const fetchHyperQuota = async (): Promise<ProviderResult> => {
   const timeoutSignal = AbortSignal.timeout(15_000);
 
   try {
-    const response = await fetch(HYPER_QUOTA_URL, {
+    const response = await fetchImpl(HYPER_QUOTA_URL, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -2837,11 +2840,10 @@ const fetchHyperQuota = async (): Promise<ProviderResult> => {
       });
     }
 
-    const payload = await response.json() as HyperPayload;
+    const payload = asObject(await response.json());
     const rawBalance = payload?.balance;
-    const balance = (typeof rawBalance === 'number' || (typeof rawBalance === 'string' && rawBalance.trim() !== ''))
-      ? toNumber(rawBalance)
-      : null;
+    const balance = toNumber(asNonEmptyString(rawBalance)
+      ?? (Number.isFinite(rawBalance) ? rawBalance : null));
 
     if (balance === null) {
       return buildResult({
@@ -2854,7 +2856,7 @@ const fetchHyperQuota = async (): Promise<ProviderResult> => {
     }
 
     const creditsLabel = Number.isInteger(balance) ? String(balance) : formatMoney(balance);
-    const windows: Record<string, UsageWindow> = {
+    const windows = {
       credits_balance: toUsageWindow({
         usedPercent: null,
         windowSeconds: null,
@@ -2865,7 +2867,7 @@ const fetchHyperQuota = async (): Promise<ProviderResult> => {
         usedPercent: null,
         windowSeconds: null,
         resetAt: null,
-        valueLabel: `${creditsLabel} credits`,
+        valueLabel: creditsLabel,
       }),
     };
 

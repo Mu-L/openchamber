@@ -5,25 +5,26 @@ import {
   buildResult,
   toUsageWindow,
   toNumber,
-  formatMoney
+  formatMoney,
+  asObject,
+  asNonEmptyString
 } from '../utils/index.js';
 
 export const providerId = 'hyper';
 export const providerName = 'Charm Hyper';
-const aliases = ['hyper'];
+export const aliases = ['hyper'];
 const HYPER_QUOTA_URL = 'https://hyper.charm.land/v1/credits';
 const CREDIT_TO_USD = 0.05;
 
-export const isConfigured = () => {
-  const auth = readAuthFile();
+const getApiKey = (auth) => {
   const entry = normalizeAuthEntry(getAuthEntry(auth, aliases));
-  return Boolean(entry?.key || entry?.token);
+  return asNonEmptyString(entry?.key) ?? asNonEmptyString(entry?.token);
 };
 
-export const fetchQuota = async () => {
-  const auth = readAuthFile();
-  const entry = normalizeAuthEntry(getAuthEntry(auth, aliases));
-  const apiKey = entry?.key ?? entry?.token;
+export const isConfigured = (auth = readAuthFile()) => Boolean(getApiKey(auth));
+
+export const fetchQuota = async ({ readAuth = readAuthFile, fetchImpl = fetch } = {}) => {
+  const apiKey = getApiKey(readAuth());
 
   if (!apiKey) {
     return buildResult({
@@ -38,7 +39,7 @@ export const fetchQuota = async () => {
   const timeoutSignal = AbortSignal.timeout(15_000);
 
   try {
-    const response = await fetch(HYPER_QUOTA_URL, {
+    const response = await fetchImpl(HYPER_QUOTA_URL, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -59,11 +60,10 @@ export const fetchQuota = async () => {
       });
     }
 
-    const payload = await response.json();
+    const payload = asObject(await response.json());
     const rawBalance = payload?.balance;
-    const balance = (typeof rawBalance === 'number' || (typeof rawBalance === 'string' && rawBalance.trim() !== ''))
-      ? toNumber(rawBalance)
-      : null;
+    const balance = toNumber(asNonEmptyString(rawBalance)
+      ?? (Number.isFinite(rawBalance) ? rawBalance : null));
 
     if (balance === null) {
       return buildResult({
@@ -87,7 +87,7 @@ export const fetchQuota = async () => {
         usedPercent: null,
         windowSeconds: null,
         resetAt: null,
-        valueLabel: `${creditsLabel} credits`
+        valueLabel: creditsLabel
       })
     };
 
