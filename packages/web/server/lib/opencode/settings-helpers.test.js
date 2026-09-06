@@ -69,6 +69,19 @@ const createTestHelpersWithRealSanitizers = () => {
 };
 
 describe('settings helpers', () => {
+  it('round-trips telemetry opt-in with the hidden list and preserves it across unrelated writes', () => {
+    const helpers = createTestHelpers();
+    const legacy = helpers.sanitizeSettingsUpdate({ workStatusHiddenSections: [] });
+    expect(legacy.workStatusHiddenSectionsExplicit).toBeUndefined();
+    const changes = helpers.sanitizeSettingsUpdate({ workStatusHiddenSections: [], workStatusHiddenSectionsExplicit: true });
+    const saved = helpers.mergePersistedSettings(legacy, changes);
+    const reloaded = helpers.formatSettingsResponse(JSON.parse(JSON.stringify(saved)));
+    expect(reloaded.workStatusHiddenSections).toEqual([]);
+    expect(reloaded.workStatusHiddenSectionsExplicit).toBe(true);
+    const next = helpers.mergePersistedSettings(reloaded, helpers.sanitizeSettingsUpdate({ workStatusPanelEnabled: false }));
+    expect(helpers.formatSettingsResponse(next).workStatusHiddenSectionsExplicit).toBe(true);
+    expect(helpers.sanitizeSettingsUpdate({ workStatusHiddenSectionsExplicit: 'true' }).workStatusHiddenSectionsExplicit).toBeUndefined();
+  });
   it('imports from the packed @openchamber/web tarball without escaping the published package', async () => {
     const tempRoot = mkdtempSync(join(tmpdir(), 'settings-helpers-pack-'));
     const packDir = join(tempRoot, 'pack');

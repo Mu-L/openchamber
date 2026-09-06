@@ -79,6 +79,8 @@ export type DesktopSettings = {
   workStatusPanelEnabled?: boolean;
   /** Work-status panel sections the user switched off. */
   workStatusHiddenSections?: string[];
+  /** True when the hidden-section list was explicitly chosen by the user. */
+  workStatusHiddenSectionsExplicit?: boolean;
   collapsibleThinkingBlocks?: boolean;
   showDeletionDialog?: boolean;
   nativeNotificationsEnabled?: boolean;

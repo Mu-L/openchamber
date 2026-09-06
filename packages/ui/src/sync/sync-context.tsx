@@ -742,6 +742,7 @@ async function resyncDirectorySessionStatuses(
   if (nextStatuses === null) return null
   applySessionStatusSnapshot(store, nextStatuses, candidateSessionIds, mode)
   if (mode === "authoritative") {
+    store.setState({ sessionStatusReady: true })
     applyGlobalSessionStatusSnapshot(directory, nextStatuses, candidateSessionIds)
     // An authoritative snapshot that settles sessions previously observed
     // busy/retry can leave their trailing assistant message and tool parts

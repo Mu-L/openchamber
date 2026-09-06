@@ -10,6 +10,7 @@ type AppearanceSlice = {
   streamingAutoFollowEnabled: boolean;
   workStatusPanelEnabled: boolean;
   workStatusHiddenSections: string[];
+  workStatusHiddenSectionsExplicit: boolean;
   sessionRecapEnabled: boolean;
   sessionSuggestionEnabled: boolean;
   sessionGoalEnabled: boolean;
@@ -67,6 +68,7 @@ export const startAppearanceAutoSave = (): void => {
     streamingAutoFollowEnabled: useUIStore.getState().streamingAutoFollowEnabled,
     workStatusPanelEnabled: useUIStore.getState().workStatusPanelEnabled,
     workStatusHiddenSections: useUIStore.getState().workStatusHiddenSections,
+    workStatusHiddenSectionsExplicit: useUIStore.getState().workStatusHiddenSectionsExplicit,
     sessionRecapEnabled: useUIStore.getState().sessionRecapEnabled,
     sessionSuggestionEnabled: useUIStore.getState().sessionSuggestionEnabled,
     sessionGoalEnabled: useUIStore.getState().sessionGoalEnabled,
@@ -111,6 +113,7 @@ export const startAppearanceAutoSave = (): void => {
       streamingAutoFollowEnabled: state.streamingAutoFollowEnabled,
       workStatusPanelEnabled: state.workStatusPanelEnabled,
       workStatusHiddenSections: state.workStatusHiddenSections,
+      workStatusHiddenSectionsExplicit: state.workStatusHiddenSectionsExplicit,
       sessionRecapEnabled: state.sessionRecapEnabled,
       sessionSuggestionEnabled: state.sessionSuggestionEnabled,
       sessionGoalEnabled: state.sessionGoalEnabled,
@@ -156,8 +159,10 @@ export const startAppearanceAutoSave = (): void => {
     }
     // Compared by content: the store hands back a new array on every change,
     // so an identity check would push a write on unrelated store updates.
-    if (current.workStatusHiddenSections.join('\u0000') !== previous.workStatusHiddenSections.join('\u0000')) {
+    if (current.workStatusHiddenSections.join('\u0000') !== previous.workStatusHiddenSections.join('\u0000')
+      || current.workStatusHiddenSectionsExplicit !== previous.workStatusHiddenSectionsExplicit) {
       diff.workStatusHiddenSections = current.workStatusHiddenSections;
+      diff.workStatusHiddenSectionsExplicit = current.workStatusHiddenSectionsExplicit;
     }
     if (current.showReasoningTraces !== previous.showReasoningTraces) {
       diff.showReasoningTraces = current.showReasoningTraces;

@@ -698,6 +698,9 @@ export interface ProjectEntry {
 }
 
 export interface SettingsPayload {
+  workStatusPanelEnabled?: boolean;
+  workStatusHiddenSections?: string[];
+  workStatusHiddenSectionsExplicit?: boolean;
   themeId?: string;
   useSystemTheme?: boolean;
   themeVariant?: 'light' | 'dark';

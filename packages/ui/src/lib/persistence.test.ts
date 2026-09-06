@@ -835,6 +835,44 @@ describe('updateDesktopSettings', () => {
     expect(saveCalls.some((changes) => changes.toolJsonViewMode === 'formatted')).toBe(true);
   });
 
+  test('legacy server lists keep telemetry hidden, while explicit opt-ins survive hydration', async () => {
+    getWindow();
+    for (const explicit of [undefined, false, true]) {
+      invalidateSettingsCache();
+      registerSettingsApi(async (changes) => changes, async () => ({
+        settings: { workStatusHiddenSections: ['mcp'], workStatusHiddenSectionsExplicit: explicit,
+          draftStartersCraftGoalAdded: true, draftStartersScheduleTaskAdded: true },
+        source: 'web',
+      }));
+      await syncDesktopSettings();
+      expect(useUIStore.getState().workStatusHiddenSections).toEqual(explicit ? ['mcp'] : ['mcp', 'telemetry']);
+      expect(useUIStore.getState().workStatusHiddenSectionsExplicit).toBe(explicit === true);
+    }
+  });
+
+  test('autosaves telemetry opt-in and its list together, then restores them through settings load', async () => {
+    getWindow();
+    invalidateSettingsCache();
+    let server: SettingsPayload = { workStatusHiddenSections: [], draftStartersCraftGoalAdded: true, draftStartersScheduleTaskAdded: true };
+    const saves: Partial<SettingsPayload>[] = [];
+    registerSettingsApi(async (changes) => { saves.push(changes); server = { ...server, ...changes }; return changes; },
+      async () => ({ settings: server, source: 'web' }));
+    await syncDesktopSettings();
+    expect(useUIStore.getState().workStatusHiddenSections).toEqual(['telemetry']);
+    startAppearanceAutoSave();
+    useUIStore.getState().setWorkStatusSectionVisible('telemetry', true);
+    await delay(600);
+    expect(saves.some((changes) => changes.workStatusHiddenSections?.length === 0 && changes.workStatusHiddenSectionsExplicit === true)).toBe(true);
+    expect(server.workStatusHiddenSections).toEqual([]);
+    invalidateSettingsCache();
+    await syncDesktopSettings();
+    expect(useUIStore.getState().workStatusHiddenSections).toEqual([]);
+    expect(useUIStore.getState().workStatusHiddenSectionsExplicit).toBe(true);
+    // An unrelated partial save response must not turn an opt-in back off.
+    await updateDesktopSettings({ workStatusPanelEnabled: useUIStore.getState().workStatusPanelEnabled });
+    expect(useUIStore.getState().workStatusHiddenSections).toEqual([]);
+  });
+
   test('applies persisted autoSaveEnabled from server settings', async () => {
     getWindow();
     invalidateSettingsCache();
