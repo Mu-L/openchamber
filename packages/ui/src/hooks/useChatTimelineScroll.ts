@@ -95,6 +95,13 @@ export interface UseChatTimelineScrollResult {
     showScrollButton: boolean;
     /** A real gesture took the scroll; flips back on any explicit opt-in. */
     userOwnsScroll: boolean;
+    /**
+     * The viewport sits within the re-arm band of the content end, measured
+     * from the scroll position on every scroll event rather than from the
+     * list's at-end transitions (which follow logic may swallow). For
+     * chrome that mirrors the reader's actual position, like the recap hint.
+     */
+    viewportAtEnd: boolean;
     isFollowingProgrammatically: boolean;
     goToBottom: (mode?: 'instant' | 'smooth') => void;
     scrollToBottomOnSend: () => void;
@@ -131,6 +138,7 @@ export const useChatTimelineScroll = ({
     // True after a real gesture until an explicit opt back in; drives the
     // overlay scrollbar suppression instead of the anchor's mere existence.
     const [userOwnsScroll, setUserOwnsScroll] = React.useState(false);
+    const [viewportAtEnd, setViewportAtEnd] = React.useState(true);
     const userOwnsScrollRef = React.useRef(userOwnsScroll);
     userOwnsScrollRef.current = userOwnsScroll;
 
@@ -612,6 +620,8 @@ export const useChatTimelineScroll = ({
         };
         const handleScroll = () => {
             queueSave();
+            const distance = scrollNode.scrollHeight - scrollNode.clientHeight - scrollNode.scrollTop;
+            setViewportAtEnd(distance <= TIMELINE_FOLLOW_REARM_THRESHOLD_PX);
         };
 
         scrollNode.addEventListener('wheel', handleWheel, { passive: true });
@@ -724,6 +734,7 @@ export const useChatTimelineScroll = ({
         flushSave();
         isAtEndRef.current = true;
         setUserOwnsScroll(false);
+        setViewportAtEnd(true);
         modeRef.current = 'following-end';
         liveFollowGenerationRef.current = userGenerationRef.current;
         hideScrollButton();
@@ -825,6 +836,7 @@ export const useChatTimelineScroll = ({
         onTimelineDataChange,
         showScrollButton,
         userOwnsScroll,
+        viewportAtEnd,
         isFollowingProgrammatically,
         goToBottom,
         scrollToBottomOnSend,

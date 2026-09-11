@@ -1144,6 +1144,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         isFollowingProgrammatically,
         showScrollButton,
         userOwnsScroll,
+        viewportAtEnd,
     } = useChatTimelineScroll({
         currentSessionId,
         currentSessionKey,
@@ -1676,17 +1677,18 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                             </div>
                         </div>
                         {/* The recap hint shares the anchor but keys its fade
-                            on the viewport actually sitting on the end, not
-                            on the user-owns-scroll intent flag: a session
-                            switch or a tap that never moves the viewport must
-                            leave the hint in place. It stays out of the
-                            measured status node — it lives inside the fixed
-                            composer gap, so its arrival must not move the end. */}
+                            on the measured distance to the end, not on the
+                            user-owns-scroll intent flag or the list's at-end
+                            transitions: a session switch or a sideways swipe
+                            that nudges the viewport must not strand it either
+                            way. It stays out of the measured status node — it
+                            lives inside the fixed composer gap, so its arrival
+                            must not move the end. */}
                         {currentSessionId ? (
                             <div
                                 className={cn(
                                     'oc-recap-hint pointer-events-none absolute bottom-full inset-x-0 mb-2 transition-opacity duration-100',
-                                    !isPinned && 'opacity-0',
+                                    !viewportAtEnd && 'opacity-0',
                                 )}
                                 style={{ transform: 'translateY(calc(-1 * var(--chat-floating-panel-clearance, 0px)))' }}
                             >
