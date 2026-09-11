@@ -1673,19 +1673,32 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                                 >
                                     <StatusRowContainer />
                                 </div>
-                                {/* The recap hint shares the anchor and its
-                                    fade, but stays out of the measured node:
-                                    it lives inside the fixed composer gap, so
-                                    its arrival must not move the end. */}
-                                {currentSessionId ? (
+                            </div>
+                        </div>
+                        {/* The recap hint shares the anchor but keys its fade
+                            on the viewport actually sitting on the end, not
+                            on the user-owns-scroll intent flag: a session
+                            switch or a tap that never moves the viewport must
+                            leave the hint in place. It stays out of the
+                            measured status node — it lives inside the fixed
+                            composer gap, so its arrival must not move the end. */}
+                        {currentSessionId ? (
+                            <div
+                                className={cn(
+                                    'oc-recap-hint pointer-events-none absolute bottom-full inset-x-0 mb-2 transition-opacity duration-100',
+                                    !isPinned && 'opacity-0',
+                                )}
+                                style={{ transform: 'translateY(calc(-1 * var(--chat-floating-panel-clearance, 0px)))' }}
+                            >
+                                <div className="chat-input-column">
                                     <SessionRecapNote
                                         sessionId={currentSessionId}
                                         directory={effectiveSessionDirectory}
                                         isMobile={isMobile}
                                     />
-                                ) : null}
+                                </div>
                             </div>
-                        </div>
+                        ) : null}
                     </>
                 )}
                 {promptReadOnly ? (

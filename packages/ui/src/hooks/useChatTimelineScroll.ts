@@ -567,20 +567,32 @@ export const useChatTimelineScroll = ({
         // an at-end transition means the drag never registers — the user
         // cannot scroll, the pill never appears, and live-follow stays armed
         // under a viewport they are fighting for.
+        let touchLastX: number | null = null;
         let touchLastY: number | null = null;
         const handleTouchStart = (event: TouchEvent) => {
+            touchLastX = event.touches[0]?.clientX ?? null;
             touchLastY = event.touches[0]?.clientY ?? null;
         };
         const handleTouchMove = (event: TouchEvent) => {
+            const x = event.touches[0]?.clientX ?? null;
             const y = event.touches[0]?.clientY ?? null;
+            const lastX = touchLastX;
             const lastY = touchLastY;
+            touchLastX = x;
             touchLastY = y;
-            if (y === null) return;
+            if (x === null || y === null || lastX === null || lastY === null) return;
+            // Only a vertical drag is a scroll gesture: a horizontal swipe (the
+            // mobile drawers open from the chat's edges) wobbles a pixel or two
+            // in y and must not release follow or hide the floating rows.
+            const dx = x - lastX;
+            const dy = y - lastY;
+            if (Math.abs(dy) <= Math.abs(dx)) return;
             // A downward finger drags the content up — the touch wheel-up.
-            const draggedUp = lastY !== null && y > lastY;
+            const draggedUp = dy > 0;
             if ((draggedUp || !isAtEndRef.current) && canScrollUp()) gesture();
         };
         const handleTouchEnd = () => {
+            touchLastX = null;
             touchLastY = null;
         };
         const handlePointerDown = (event: PointerEvent) => {
