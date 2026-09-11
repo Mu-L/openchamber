@@ -18,8 +18,11 @@ title: Chat refinements and PR reviews
 - App: Hidden Files, Changes, terminal, and walkthrough panels pause background work while you're using another panel.
 - Chat: Inline code colors follow the selected theme.
 - Mobile: A dot on the workspace button marks uncommitted changes.
+- Chat: Removed the extra changed-files dropdown under answers in non-Git folders.
 
 ### Fixes
+- Sessions: Default model, agent, and thinking choices survive restarts and instance switches, with faster loading in the model and agent pickers (thanks to @alvins82).
+- Chat: Model favorites save from the first change, including when you reload immediately (thanks to @alvins82).
 - Chat: Reading older messages keeps your place as earlier history loads, and a growing message box keeps the latest message in view.
 - Chat: Reasoning and shell output keep scrolling with incoming text until you scroll up yourself.
 - Chat: File lists under answers use the turn's direct edits, reducing unrelated files from other sessions. Long lists collapse after four files (thanks to @yulia-ivashko).
@@ -55,10 +58,12 @@ title: Chat refinements and PR reviews
 - **Chat:** Visual refinements to the message box, attachments, and menus make better use of the space in the sidebar and editor tabs.
 - Chat: Attachments sit inside the message box, and queued messages start collapsed.
 - Sessions: Markdown exports preserve attached quotes and comments with their source.
-- Chat: Removed the changed-files bar above the message box to leave more room for the conversation.
+- Chat: Removed the changed-files bar above the message box and the extra file dropdown under answers in non-Git folders.
 - Chat: Inline code uses colors from your VS Code theme.
 
 ### Fixes
+- Sessions: Saved model, agent, and thinking defaults survive reloads and temporary provider unavailability, and their pickers display saved choices sooner (thanks to @alvins82).
+- Chat: The first model you add to favorites stays saved after reloading the panel (thanks to @alvins82).
 - Chat: Reloading panels or moving them between windows now closes old background connections, fixing a connection leak.
 - Chat: Loading older history keeps your reading position, and the latest message stays in view as the message box grows.
 - Chat: Reasoning and shell output continue following incoming text until you scroll up.
