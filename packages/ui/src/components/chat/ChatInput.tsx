@@ -3174,14 +3174,12 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
             ) : null}
         </div>
     ) : null;
-    // Mobile: the suggested follow-up is the composer's own top row, and model
-    // and agent its bottom row, inside the pill and the expanded box alike, so
-    // the surface stays one shape. Desktop keeps the suggestion as a floating
-    // card above the composer.
+    // The suggested follow-up is the composer's own top row on every surface
+    // (inside the mobile pill and the box alike); on mobile the model and
+    // agent are its bottom row too, so the surface stays one shape.
     const suggestionHidden = hasContent || newSessionDraftOpen || isBtwActive || isBtwPanelVisible || hasQueuedMessages;
-    const mobileSuggestionRow = isMobile && !isBtwActive ? (
+    const suggestionRow = !isBtwActive ? (
         <SessionSuggestionChip
-            variant="row"
             sessionId={currentSessionId}
             directory={currentSessionDirectoryForSync ?? currentDirectory}
             hidden={suggestionHidden}
@@ -3394,7 +3392,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         iconSizeClass={iconSizeClass}
                         sendIconSizeClass={sendIconSizeClass}
                         stopIconSizeClass={stopIconSizeClass}
-                        topRow={mobileSuggestionRow}
+                        topRow={suggestionRow}
                         attachments={(
                             <div className="px-3 pt-1">
                                 <AttachedFilesList onShowPopup={handleShowAttachmentPreview} className="pt-2" />
@@ -3485,7 +3483,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         text area + footer exactly. */}
                     <div className={cn('relative flex flex-col', isComposerExpanded && 'flex-1 min-h-0')}>
                     <div className={cn("overflow-hidden", isComposerExpanded && 'flex flex-1 min-h-0 flex-col')}>
-                        {mobileSuggestionRow}
+                        {suggestionRow}
                         {isMobile && isBtwActive ? (
                             <div className="scrollbar-none relative z-10 flex items-center gap-x-2 overflow-x-auto px-3 pb-0.5 pt-1.5">
                                 <ModelControls
@@ -3644,14 +3642,6 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                 <DraftPresetChips
                     onSubmit={(starter) => submitPresetPrompt(starter.submitText, starter.ref.type)}
                     className={cn('chat-input-column mt-4', draftPresentationClassName)}
-                />
-            ) : null}
-            {!isMobile ? (
-                <SessionSuggestionChip
-                    sessionId={currentSessionId}
-                    directory={currentSessionDirectoryForSync ?? currentDirectory}
-                    hidden={suggestionHidden}
-                    onApply={applyAssistSuggestion}
                 />
             ) : null}
             <QueuedMessageChips
