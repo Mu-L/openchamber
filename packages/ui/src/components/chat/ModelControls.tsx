@@ -1163,11 +1163,9 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
 
     React.useEffect(() => {
         if (selection) return;
-        if (!contextHydrated || !currentAgentName) {
-            manualVariantSelectionRef.current = false;
-            setCurrentVariant(undefined);
-            return;
-        }
+        // Missing discovery/context data cannot invalidate a configured effort.
+        // Clearing it here also marks the automatic draft selection as manual.
+        if (!contextHydrated || !currentAgentName || (currentModelId && !currentModelForMetadata)) return;
 
         if (!currentProviderId || !currentModelId) {
             manualVariantSelectionRef.current = false;
@@ -1219,6 +1217,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         manualVariantSelectionRef.current = false;
     }, [
         availableVariants,
+        currentModelForMetadata,
         contextHydrated,
         currentSessionId,
         currentAgentName,

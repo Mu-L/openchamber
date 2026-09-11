@@ -65,14 +65,14 @@ type ConfigState = {
   setAgent: (agentName: string) => void;
   setCurrentVariant: (variant: string | undefined) => void;
   setCurrentVariantOverride: (override: VariantChoice, inherited: string | undefined) => void;
-  getCurrentProvider: () => typeof provider;
+  getCurrentProvider: () => typeof provider | undefined;
   getCurrentAgent: () => typeof agent;
   getVisibleAgents: () => typeof agent[];
   getCurrentModelVariants: () => string[];
   getModelMetadata: () => undefined;
 };
 
-const useConfigStore = create<ConfigState>((set) => ({
+const useConfigStore = create<ConfigState>((set, get) => ({
   providers: [provider],
   agents: [agent],
   modelsMetadata: {},
@@ -108,7 +108,7 @@ const useConfigStore = create<ConfigState>((set) => ({
       return { currentVariant, currentVariantSelection: { override, inherited } };
     });
   },
-  getCurrentProvider: () => provider,
+  getCurrentProvider: () => get().providers.find((entry) => entry.id === get().currentProviderId),
   getCurrentAgent: () => agent,
   getVisibleAgents: () => [agent],
   getCurrentModelVariants: () => Object.keys(model.variants),
@@ -150,7 +150,8 @@ const useSelectionStore = create<SelectionState>((set, get) => ({
   },
 }));
 
-const useSessionUIStore = create(() => ({
+type SessionUIState = { currentSessionId: string | null; getDirectoryForSession: () => string };
+const useSessionUIStore = create<SessionUIState>(() => ({
   currentSessionId: SESSION_ID,
   getDirectoryForSession: () => '/workspace/project',
 }));
@@ -335,9 +336,11 @@ describe('ModelControls effort restore', () => {
     overrideWrites.length = 0;
     latestUserChoice = null;
     forcePreserveManualOverride = null;
+    useSessionUIStore.setState({ currentSessionId: SESSION_ID });
     useUIStore.setState({ isMobile: false, isModelSelectorOpen: false });
     useSelectionStore.setState({ savedVariant: undefined });
     useConfigStore.setState({
+      providers: [provider],
       currentProviderId: PROVIDER_ID,
       currentModelId: MODEL_ID,
       currentAgentName: AGENT,
@@ -359,6 +362,26 @@ describe('ModelControls effort restore', () => {
       expect(variantWrites).not.toContain(null);
       expect(useSelectionStore.getState().savedVariant).toBe('low');
       expect(useConfigStore.getState().currentVariantSelection.override).toBe('low');
+    } finally {
+      await cleanup();
+    }
+  });
+
+  test('a draft keeps its chosen model and effort through a provider discovery gap', async () => {
+    useSessionUIStore.setState({ currentSessionId: null });
+    useConfigStore.setState({
+      providers: [], currentVariant: 'high', settingsDefaultVariant: 'high',
+      currentVariantSelection: { override: 'high', inherited: 'high' },
+    });
+    const { dom, cleanup } = await renderModelControls();
+    try {
+      expect(useConfigStore.getState().currentModelId).toBe(MODEL_ID);
+      expect(useConfigStore.getState().currentVariant).toBe('high');
+      expect(overrideWrites).toEqual([]);
+      await act(async () => { useConfigStore.setState({ providers: [provider] }); });
+      expect(dom.container.textContent).toContain(MODEL_ID);
+      expect(useConfigStore.getState().currentVariant).toBe('high');
+      expect(overrideWrites).toEqual([]);
     } finally {
       await cleanup();
     }

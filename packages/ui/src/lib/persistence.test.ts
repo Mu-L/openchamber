@@ -1219,6 +1219,31 @@ describe('updateDesktopSettings', () => {
     await update;
   });
 
+  test('a delayed read retains an edit whose write finishes before the read', async () => {
+    const readResult = deferred<{ settings: SettingsPayload; source: 'web' }>();
+    const newDefaults = { defaultModel: 'provider/new', defaultVariant: 'high', defaultAgent: 'review' };
+    const writes: Array<Partial<SettingsPayload>> = [];
+    registerSettingsApi(async (changes) => { writes.push(changes); return { ...changes }; }, () => readResult.promise);
+    const update = updateDesktopSettings(newDefaults);
+    const read = loadDesktopSettings();
+    await update;
+    readResult.resolve({ settings: { defaultModel: 'provider/old', defaultVariant: 'low', defaultAgent: 'build' }, source: 'web' });
+    expect(await read).toMatchObject(newDefaults);
+    expect(await loadDesktopSettings()).toMatchObject(newDefaults);
+    await updateDesktopSettings({ defaultModel: 'provider/old' });
+    expect(writes).toHaveLength(2);
+  });
+
+  test('a read started before an edit cannot undo its completed write', async () => {
+    const readResult = deferred<{ settings: SettingsPayload; source: 'web' }>();
+    registerSettingsApi(async (changes) => ({ ...changes }), () => readResult.promise);
+    const read = loadDesktopSettings();
+    await updateDesktopSettings({ defaultModel: 'provider/new' });
+    readResult.resolve({ settings: { defaultModel: 'provider/old' }, source: 'web' });
+    expect((await read)?.defaultModel).toBe('provider/new');
+    expect((await loadDesktopSettings())?.defaultModel).toBe('provider/new');
+  });
+
   test('toggling back to the server value inside the debounce window cancels the pending write', async () => {
     getWindow();
     invalidateSettingsCache();

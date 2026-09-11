@@ -537,6 +537,29 @@ const fetchWebSettings = async (context = captureSettingsRuntimeContext()): Prom
   // Dedup concurrent calls
   if (_settingsInflight && isSameSettingsRuntimeContext(_settingsInflight.context, context)) return _settingsInflight.promise;
 
+  // Keep overlapping intent alive until this read settles, even if its write
+  // has already completed. A late GET must not refill the cache with old data.
+  const operation = _settingsMutationTracker.begin();
+  const initialOverlay = getSettingsWriteOverlay(context);
+  const commitRead = (settings: DesktopSettings | null): DesktopSettings | null => {
+    if (!isSettingsRuntimeContextCurrent(context) || !settings) return null;
+    const reconciled = reconcileSettingsRead(
+      _settingsMutationTracker.reconcile({ ...settings, ...initialOverlay }, operation),
+      context,
+    );
+    _settingsCache = { value: reconciled, at: Date.now(), context };
+    // Do not undo knowledge from a completed save with an older GET either:
+    // that would incorrectly drop a later user change back to the old value.
+    const unchanged: Partial<DesktopSettings> = {};
+    for (const key of settingsKeysOf(settings)) {
+      if (isSameSettingValue(settings[key], reconciled?.[key])) {
+        Object.assign(unchanged, { [key]: settings[key] });
+      }
+    }
+    rememberServerSettings(unchanged);
+    return reconciled;
+  };
+
   const inflight = {
     context,
     promise: (async (): Promise<DesktopSettings | null> => {
@@ -546,9 +569,7 @@ const fetchWebSettings = async (context = captureSettingsRuntimeContext()): Prom
           const result = await runtimeSettings.load();
           if (!isSettingsRuntimeContextCurrent(context)) return null;
           const settings = sanitizeWebSettings(result.settings);
-          _settingsCache = { value: settings, at: Date.now(), context };
-          if (settings) rememberServerSettings(settings);
-          return reconcileSettingsRead(settings, context);
+          return commitRead(settings);
         } catch (error) {
           if (!isSettingsRuntimeContextCurrent(context)) return null;
           console.warn('Failed to load shared settings from runtime settings API:', error);
@@ -571,9 +592,7 @@ const fetchWebSettings = async (context = captureSettingsRuntimeContext()): Prom
         const data = await response.json().catch(() => null);
         if (!isSettingsRuntimeContextCurrent(context)) return null;
         const settings = sanitizeWebSettings(data);
-        _settingsCache = { value: settings, at: Date.now(), context };
-        if (settings) rememberServerSettings(settings);
-        return reconcileSettingsRead(settings, context);
+        return commitRead(settings);
       } catch (error) {
         if (!isSettingsRuntimeContextCurrent(context)) return null;
         console.warn('Failed to load shared settings from server:', error);
@@ -583,6 +602,7 @@ const fetchWebSettings = async (context = captureSettingsRuntimeContext()): Prom
   };
   _settingsInflight = inflight;
   void inflight.promise.finally(() => {
+    _settingsMutationTracker.finish(operation);
     if (_settingsInflight === inflight) _settingsInflight = null;
   });
 
@@ -827,6 +847,9 @@ export const updateDesktopSettings = async (changes: Partial<DesktopSettings>): 
   for (const key of settingsKeysOf(changes)) {
     if (isWritableSettingsKey(key)) Object.assign(writable, { [key]: changes[key] });
   }
+  // A toggle back cancels its pending PUT but is still newer intent for any
+  // read that captured the previous pending value.
+  const revision = _settingsMutationTracker.record(writable);
   const pending = withoutRedundantSettings({ ...(_pendingSettingsChanges ?? {}), ...writable });
   if (Object.keys(pending).length === 0) {
     _pendingSettingsChanges = null;
@@ -843,7 +866,7 @@ export const updateDesktopSettings = async (changes: Partial<DesktopSettings>): 
   }
   _pendingSettingsChanges = pending;
   _pendingSettingsContext = context;
-  _pendingSettingsRevision = _settingsMutationTracker.record(withoutRedundantSettings(writable));
+  _pendingSettingsRevision = revision;
   dispatchSettingsSaveState('saving');
 
   if (_settingsFlushTimer) {
