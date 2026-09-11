@@ -4,9 +4,9 @@ import { appendManagedPlugin } from '../opencode/managed-plugin-config.js';
 /**
  * OpenCode marks an MCP server `failed` when it does not come up at startup or
  * when a live connection drops, and never tries again. This plugin runs inside
- * the managed OpenCode process and reconnects those servers with a per-server
- * exponential backoff, so a server that was merely slow to start, or a local
- * one that crashed, comes back without an OpenCode restart.
+ * the managed OpenCode process and retries remote servers at most three times
+ * per failure episode. Local servers require manual recovery: reconnect can
+ * spawn another process, and this plugin cannot verify prior process cleanup.
  *
  * Only `failed` is retried. `needs_auth`, `needs_client_registration`, and
  * `disabled` are user decisions or need user action, and retrying them would
@@ -18,7 +18,7 @@ import { appendManagedPlugin } from '../opencode/managed-plugin-config.js';
  */
 const createPluginSource = () => String.raw`
 const INITIAL_RETRY_MS = 1000
-const MAX_RETRY_MS = 30000
+const MAX_ATTEMPTS = 3
 const IDLE_CHECK_MS = 30000
 
 export const OpenChamberMcpReconnectPlugin = async ({ client }) => {
@@ -37,6 +37,7 @@ export const OpenChamberMcpReconnectPlugin = async ({ client }) => {
   }
 
   const tick = async () => {
+    if (disposed) return
     if (running) {
       wakeRequested = true
       return
@@ -44,15 +45,17 @@ export const OpenChamberMcpReconnectPlugin = async ({ client }) => {
     running = true
     let delay = IDLE_CHECK_MS
     try {
-      const statuses = (await client.mcp.status())?.data ?? {}
+      const result = await client.mcp.status()
+      if (disposed || result?.error || !result?.data) return
+      const statuses = result.data
       const now = Date.now()
       const due = []
       for (const [name, entry] of Object.entries(statuses)) {
-        if (entry?.status !== "failed") {
+        if (entry?.status === "connected") {
           attempts.delete(name)
           dueAt.delete(name)
-          continue
         }
+        if (entry?.status !== "failed" || (attempts.get(name) ?? 0) >= MAX_ATTEMPTS) continue
         const at = dueAt.get(name) ?? now
         if (at > now) {
           delay = Math.min(delay, at - now)
@@ -67,17 +70,26 @@ export const OpenChamberMcpReconnectPlugin = async ({ client }) => {
         }
       }
 
-      await Promise.allSettled(due.map((name) => client.mcp.connect({ path: { name } })))
+      if (due.length === 0) return
+      // Read the effective directory config, including project overrides.
+      // Missing config or an SDK error must never authorize a local restart.
+      const config = await client.config.get()
+      if (disposed || config?.error || !config?.data) return
+      const remote = due.filter((name) => {
+        const server = config.data.mcp?.[name]
+        return server?.type === "remote" && server.enabled !== false
+      })
+      await Promise.allSettled(remote.map((name) => client.mcp.connect({ path: { name } })))
 
       // The result is read on the next tick: a server that came back clears
       // its counter there, one still failed waits out its backoff.
       const after = Date.now()
-      for (const name of due) {
+      for (const name of remote) {
         const count = (attempts.get(name) ?? 0) + 1
-        const wait = Math.min(INITIAL_RETRY_MS * 2 ** (count - 1), MAX_RETRY_MS)
+        const wait = INITIAL_RETRY_MS * 2 ** (count - 1)
         attempts.set(name, count)
         dueAt.set(name, after + wait)
-        delay = Math.min(delay, wait)
+        if (count < MAX_ATTEMPTS) delay = Math.min(delay, wait)
       }
     } catch {
       // Status is unavailable while OpenCode is shutting down or restarting;
