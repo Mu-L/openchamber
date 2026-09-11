@@ -45,6 +45,20 @@ The shared frame measures its height and gap into the chat column's
 insets, and scroll position remain unchanged. Unmounting clears the offset;
 resizing or collapsing the frame updates it.
 
+## Floating composer
+
+In a normal session view the composer slot is an absolute layer over the
+bottom of the transcript (`ChatContainer`), and the input box is glass
+(`oc-glass-composer`). The draft screen and the expanded editor keep the slot
+in flow. A `ResizeObserver` on the slot writes its height into the chat
+column's `--chat-composer-inset`; the timeline's tail spacer reads that
+variable plus a fixed gap, so the last row always ends above the composer.
+The variable is written straight to the DOM, so composer growth never
+re-renders the timeline: the list's own footer observer extends the content
+and the scroll hook's pinned-end observer keeps a reader on the end. The
+mobile keyboard choreography is unchanged: the form inside the slot is still
+the keyboard mover and the column shrinks around it at settle.
+
 ## Layers
 
 | Directory | Owns |

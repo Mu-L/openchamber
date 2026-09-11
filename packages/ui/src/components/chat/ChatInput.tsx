@@ -318,6 +318,7 @@ const renderDraftTitle = (title: string, projectLabel: string | null): React.Rea
 const MemoModelControls = React.memo(ModelControls);
 const MemoComposerDictation = React.memo(ComposerDictation);
 const MemoMobileAgentButton = React.memo(MobileAgentButton);
+
 const MemoMobileModelButton = React.memo(MobileModelButton);
 const MemoComposerStatusBar = React.memo(ComposerStatusBar);
 
@@ -473,7 +474,6 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
     ));
     const setNewSessionDraftTarget = useSessionUIStore((s) => s.setNewSessionDraftTarget);
     const setDraftPermissionAutoAcceptEnabled = useSessionUIStore((s) => s.setDraftPermissionAutoAcceptEnabled);
-    const openNewSessionDraft = useSessionUIStore((s) => s.openNewSessionDraft);
     const prepareChatDraftDirectory = useSessionUIStore((s) => s.prepareChatDraftDirectory);
     const abortPromptSessionId = useSessionUIStore((s) => s.abortPromptSessionId);
     const clearAbortPrompt = useSessionUIStore((s) => s.clearAbortPrompt);
@@ -3130,11 +3130,77 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
         }
     }, [isMobile, mobileComposerExpanded, mobileShell]);
 
-
-    const handleMobileNewSession = React.useCallback(() => {
-        if (newSessionDraftOpen) return;
-        openNewSessionDraft(currentDirectory ? { directoryOverride: currentDirectory } : undefined);
-    }, [newSessionDraftOpen, openNewSessionDraft, currentDirectory]);
+    // Linked references render as chips beside the attached files, inside the
+    // composer box and inside the mobile pill.
+    const hasLinkedReferences = !isVSCode && Boolean(linkedIssue || linkedPr || linkedLinearIssue);
+    const linkedReferenceChips = hasLinkedReferences ? (
+        <div className="flex flex-wrap items-center gap-2 pt-2">
+            {linkedIssue && !isVSCode ? (
+                <LinkedReferenceRow
+                    numberLabel={`#${linkedIssue.number}`}
+                    title={linkedIssue.title}
+                    url={linkedIssue.url}
+                    author={linkedIssue.author}
+                    openInBrowserLabel={t('chat.chatInput.linked.issue.openInBrowserAria')}
+                    removeLabel={t('chat.chatInput.linked.issue.removeAria')}
+                    onReopenPicker={() => setIssuePickerOpen(true)}
+                    onRemove={() => setLinkedIssue(null)}
+                />
+            ) : null}
+            {linkedPr && !isVSCode ? (
+                <LinkedReferenceRow
+                    numberLabel={t('chat.chatInput.linked.pr.number', { number: linkedPr.number })}
+                    title={linkedPr.title}
+                    url={linkedPr.url}
+                    author={linkedPr.author}
+                    branches={linkedPr.head && linkedPr.base ? { head: linkedPr.head, base: linkedPr.base } : undefined}
+                    openInBrowserLabel={t('chat.chatInput.linked.pr.openInBrowserAria')}
+                    removeLabel={t('chat.chatInput.linked.pr.removeAria')}
+                    onReopenPicker={() => setPrPickerOpen(true)}
+                    onRemove={() => setLinkedPr(null)}
+                />
+            ) : null}
+            {linkedLinearIssue && !isVSCode ? (
+                <LinkedReferenceRow
+                    numberLabel={linkedLinearIssue.identifier}
+                    title={linkedLinearIssue.title}
+                    url={linkedLinearIssue.url}
+                    author={linkedLinearIssue.author}
+                    openInBrowserLabel={t('chat.chatInput.linked.linearIssue.openInBrowserAria')}
+                    removeLabel={t('chat.chatInput.linked.linearIssue.removeAria')}
+                    onReopenPicker={() => setLinearPickerOpen(true)}
+                    onRemove={() => setLinkedLinearIssue(null)}
+                />
+            ) : null}
+        </div>
+    ) : null;
+    // Mobile: the suggested follow-up is the composer's own top row, and model
+    // and agent its bottom row, inside the pill and the expanded box alike, so
+    // the surface stays one shape. Desktop keeps the suggestion as a floating
+    // card above the composer.
+    const suggestionHidden = hasContent || newSessionDraftOpen || isBtwActive || isBtwPanelVisible || hasQueuedMessages;
+    const mobileSuggestionRow = isMobile && !isBtwActive ? (
+        <SessionSuggestionChip
+            variant="row"
+            sessionId={currentSessionId}
+            directory={currentSessionDirectoryForSync ?? currentDirectory}
+            hidden={suggestionHidden}
+            onApply={applyAssistSuggestion}
+        />
+    ) : null;
+    const mobileModelAgentRow = isMobile && !isBtwActive ? (
+        // px-3.5 lines the model logo and the agent label up with the attach
+        // and mic icons above them; the buttons drop their own padding so the
+        // row alone owns the inset.
+        <div className="flex items-center justify-between gap-x-2 px-3.5 pb-2 pt-0.5">
+            <MemoMobileModelButton onOpenModel={() => handleOpenMobilePanel('model')} className="min-w-0 px-0" />
+            <MemoMobileAgentButton
+                onOpenAgentPanel={handleOpenAgentPanel}
+                onCycleAgent={handleCycleAgent}
+                className="flex-shrink-0 px-0"
+            />
+        </div>
+    ) : null;
 
     /** The dictation engine listens for this globally; the composer only asks. */
     const toggleDictation = React.useCallback(() => {
@@ -3264,10 +3330,6 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                 </div>
             ) : null}
             <div className={cn('chat-input-column relative overflow-visible', isComposerExpanded && 'flex flex-1 min-h-0 flex-col')}>
-                {isMobile && !mobileComposerExpanded && !isBtwActive ? (
-                    // The collapsed pill has no room for previews, so they sit above it.
-                    <AttachedFilesList onShowPopup={handleShowAttachmentPreview} className="pb-3" />
-                ) : null}
                 <AutoReviewBanner />
                 {hasDrafts ? (
                     <ComposerContextChips
@@ -3276,43 +3338,6 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                     />
                 ) : null}
 
-                {linkedIssue && !isVSCode ? (
-                    <LinkedReferenceRow
-                        numberLabel={`#${linkedIssue.number}`}
-                        title={linkedIssue.title}
-                        url={linkedIssue.url}
-                        author={linkedIssue.author}
-                        openInBrowserLabel={t('chat.chatInput.linked.issue.openInBrowserAria')}
-                        removeLabel={t('chat.chatInput.linked.issue.removeAria')}
-                        onReopenPicker={() => setIssuePickerOpen(true)}
-                        onRemove={() => setLinkedIssue(null)}
-                    />
-                ) : null}
-                {linkedPr && !isVSCode ? (
-                    <LinkedReferenceRow
-                        numberLabel={t('chat.chatInput.linked.pr.number', { number: linkedPr.number })}
-                        title={linkedPr.title}
-                        url={linkedPr.url}
-                        author={linkedPr.author}
-                        branches={linkedPr.head && linkedPr.base ? { head: linkedPr.head, base: linkedPr.base } : undefined}
-                        openInBrowserLabel={t('chat.chatInput.linked.pr.openInBrowserAria')}
-                        removeLabel={t('chat.chatInput.linked.pr.removeAria')}
-                        onReopenPicker={() => setPrPickerOpen(true)}
-                        onRemove={() => setLinkedPr(null)}
-                    />
-                ) : null}
-                {linkedLinearIssue && !isVSCode ? (
-                    <LinkedReferenceRow
-                        numberLabel={linkedLinearIssue.identifier}
-                        title={linkedLinearIssue.title}
-                        url={linkedLinearIssue.url}
-                        author={linkedLinearIssue.author}
-                        openInBrowserLabel={t('chat.chatInput.linked.linearIssue.openInBrowserAria')}
-                        removeLabel={t('chat.chatInput.linked.linearIssue.removeAria')}
-                        onReopenPicker={() => setLinearPickerOpen(true)}
-                        onRemove={() => setLinkedLinearIssue(null)}
-                    />
-                ) : null}
                 <RevertedMessageDock
                     sessionId={currentSessionId}
                     directory={currentSessionDirectoryForSync ?? currentDirectory}
@@ -3369,11 +3394,17 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         iconSizeClass={iconSizeClass}
                         sendIconSizeClass={sendIconSizeClass}
                         stopIconSizeClass={stopIconSizeClass}
-                        theme={currentTheme}
+                        topRow={mobileSuggestionRow}
+                        attachments={(
+                            <div className="px-3 pt-1">
+                                <AttachedFilesList onShowPopup={handleShowAttachmentPreview} className="pt-2" />
+                                {linkedReferenceChips}
+                            </div>
+                        )}
+                        bottomRow={mobileModelAgentRow}
                         onExpand={mobileShell.expand}
                         onPrimaryAction={handlePrimaryAction}
                         onQueueMessage={() => { void handleQueueMessage(); }}
-                        onNewSession={handleMobileNewSession}
                         onPickLocalFiles={handlePickLocalFiles}
                         onOpenIssuePicker={openIssuePicker}
                         onOpenPrPicker={openPrPicker}
@@ -3396,12 +3427,11 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         isComposerExpanded && 'flex-1 min-h-0',
                         "border border-border/80 focus-within:border-interactive-selection-foreground/35",
                         "shadow-[0_4px_16px_-4px_rgb(0_0_0_/_0.12)]",
+                        // The box floats over the transcript, so it is glass.
+                        'oc-glass-composer',
                         isDragging && "ring-2 ring-primary ring-offset-2"
                     )}
-                    style={{
-                        borderRadius: chatInputRadius,
-                        backgroundColor: currentTheme?.colors?.surface?.subtle,
-                    }}
+                    style={{ borderRadius: chatInputRadius }}
                     ref={dropZoneRef}
                     onDropCapture={handleDropCapture}
                     onDragEnter={handleDragEnter}
@@ -3450,6 +3480,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         text area + footer exactly. */}
                     <div className={cn('relative flex flex-col', isComposerExpanded && 'flex-1 min-h-0')}>
                     <div className={cn("overflow-hidden", isComposerExpanded && 'flex flex-1 min-h-0 flex-col')}>
+                        {mobileSuggestionRow}
                         {isMobile && isBtwActive ? (
                             <div className="scrollbar-none relative z-10 flex items-center gap-x-2 overflow-x-auto px-3 pb-0.5 pt-1.5">
                                 <ModelControls
@@ -3461,6 +3492,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         ) : null}
                         <div className="flex items-center gap-1 px-3 pt-1 flex-wrap relative z-10">
                             {!isBtwActive ? <AttachedFilesList onShowPopup={handleShowAttachmentPreview} className="pt-2" /> : null}
+                            {!isBtwActive ? linkedReferenceChips : null}
                             {!isBtwActive ? <AttachedVSCodeFileChips onShowPopup={handleShowAttachmentPreview} /> : null}
                             {!isBtwActive ? <ActiveEditorFileSuggestion /> : null}
                         </div>
@@ -3517,7 +3549,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                                     isComposerExpanded
                                         ? cn('h-full min-h-0', isMobile ? 'py-2.5' : 'py-4')
                                         : isMobile
-                                            ? 'py-2.5'
+                                            ? 'pt-4 pb-2.5'
                                             : 'pt-4 pb-2',
                                     inputMode === 'shell' ? 'font-mono' : 'typography-markdown md:typography-ui-label',
                                 )}
@@ -3565,6 +3597,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         modelSessionId={btwComposerSessionId}
                         btwSelection={effectiveBtwSelection}
                     />
+                    {mobileModelAgentRow}
                     </div>
 
                 </div>
@@ -3590,20 +3623,6 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                     />
                 ) : null}
                 </div>
-                {/* Model and agent live under the composer on mobile, in both
-                    the pill and the expanded shape, so the input box holds
-                    only the draft. Outside the wrapper above so the dictation
-                    overlay does not cover them. */}
-                {isMobile && !isBtwActive ? (
-                    <div className="flex items-center justify-between gap-x-2 px-3 pt-1.5">
-                        <MemoMobileModelButton onOpenModel={() => handleOpenMobilePanel('model')} className="min-w-0" />
-                        <MemoMobileAgentButton
-                            onOpenAgentPanel={handleOpenAgentPanel}
-                            onCycleAgent={handleCycleAgent}
-                            className="flex-shrink-0"
-                        />
-                    </div>
-                ) : null}
                 {/* Hidden host for the model/agent/variant bottom sheets. Kept
                     outside the pill conditional so an open panel survives (and
                     stays visible over) the collapsed composer. */}
@@ -3621,12 +3640,14 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                     className={cn('chat-input-column mt-4', draftPresentationClassName)}
                 />
             ) : null}
-            <SessionSuggestionChip
-                sessionId={currentSessionId}
-                directory={currentSessionDirectoryForSync ?? currentDirectory}
-                hidden={hasContent || newSessionDraftOpen || isBtwActive || isBtwPanelVisible || hasQueuedMessages}
-                onApply={applyAssistSuggestion}
-            />
+            {!isMobile ? (
+                <SessionSuggestionChip
+                    sessionId={currentSessionId}
+                    directory={currentSessionDirectoryForSync ?? currentDirectory}
+                    hidden={suggestionHidden}
+                    onApply={applyAssistSuggestion}
+                />
+            ) : null}
             <QueuedMessageChips
                 key={parentMessageQueueKey}
                 target={parentMessageQueueTarget}

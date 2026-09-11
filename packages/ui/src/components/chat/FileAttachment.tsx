@@ -232,6 +232,9 @@ const ImagePreview = memo(({ file, onRemove, onShowPopup, gallery, index = 0 }: 
           onRemove();
         }}
         className="absolute top-1 right-1 h-5 w-5 rounded-md bg-background/80 text-foreground hover:bg-background flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        // Inline: the mobile stylesheet floors every button at 36px, which
+        // would swallow a 64px thumbnail; the thumbnail itself is the target.
+        style={{ width: 20, height: 20, minWidth: 0, minHeight: 0 }}
         title={t('chat.fileAttachment.actions.removeImage')}
         aria-label={t('chat.fileAttachment.actions.removeNamed', { name: displayName })}
       >
