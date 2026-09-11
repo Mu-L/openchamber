@@ -60,7 +60,11 @@ resizing or collapsing the frame updates it.
 | `largeTextPasteOffer.ts` | Ask-toast offer id begin/resolve (supersede + double-apply guards) |
 
 `ChatInput.handlePaste` owns paste orchestration: URL-over-selection markdown
-links, clipboard images (attach + citation), and large plain-text pastes.
+links, clipboard files, and large plain-text pastes. Pasted and dropped files
+share `attachFilesWithCitation`: every file attaches and is cited in the draft
+as `[name]`; images get a generated unique name first, other files keep their
+own name and are cited only after they attached. A copied file's filename text
+is suppressed so only the citation lands in the draft.
 Large pastes (about 2,000 characters or 25 lines) follow the composer setting
 `largeTextPasteBehavior` (`ask` / `attach` / `inline`). Attaching creates an
 in-memory `text/plain` file named `pasted-context-N.txt`, inserts a bracket
