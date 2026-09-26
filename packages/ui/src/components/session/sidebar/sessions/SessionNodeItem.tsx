@@ -1485,6 +1485,7 @@ function SessionNodeItemComponent(props: SessionNodeItemProps): React.ReactNode 
       prBadge={timelinePrBadge}
       zombieIndicator={streamingIndicator}
       badges={rowBadges}
+      providerId={resolvedSession.model?.providerID ?? null}
       metaPaddingClass={alwaysShowActions
         ? (showQuickArchiveAction ? 'pr-19' : 'pr-13')
         : undefined}

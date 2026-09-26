@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon } from '@/components/icon/Icon';
+import { ProviderLogo } from '@/components/ui/ProviderLogo';
 import { cn } from '@/lib/utils';
 import { PROJECT_COLOR_MAP, PROJECT_ICON_MAP, ProjectIconImage } from '@/lib/projectMeta';
 import { useThemeSystem } from '@/contexts/useThemeSystem';
@@ -30,6 +31,8 @@ type Props = {
   prBadge: React.ReactNode;
   zombieIndicator: React.ReactNode;
   badges: React.ReactNode;
+  /** Provider of the session's model; its logo closes the third line. */
+  providerId?: string | null;
   /** Reserves room for the action buttons that share the first line. */
   metaPaddingClass?: string;
   hideMetaOnHoverClass: string;
@@ -81,10 +84,11 @@ export const SessionTimelineRowBody: React.FC<Props> = ({
   prBadge,
   zombieIndicator,
   badges,
+  providerId,
   metaPaddingClass,
   hideMetaOnHoverClass,
 }) => {
-  const hasThirdLine = !compact && (Boolean(branchLabel) || Boolean(prBadge) || Boolean(zombieIndicator) || Boolean(badges));
+  const hasThirdLine = !compact && (Boolean(branchLabel) || Boolean(prBadge) || Boolean(zombieIndicator) || Boolean(badges) || Boolean(providerId));
   // Compact rows have no third line, so their badges ride in the meta
   // cluster: the hover actions overlay that cluster, and anything placed
   // after it would sit underneath them.
@@ -123,6 +127,7 @@ export const SessionTimelineRowBody: React.FC<Props> = ({
         <span className="ml-auto flex flex-shrink-0 items-center gap-1">
           {zombieIndicator ?? prBadge}
           {badges}
+          {providerId ? <ProviderLogo providerId={providerId} className="h-4 w-4 flex-shrink-0 opacity-45" /> : null}
         </span>
       </div>
     ) : null}
