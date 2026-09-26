@@ -869,6 +869,12 @@ interface UIStore {
    * not a second writer of the active project.
    */
   settingsProjectPath: string | null;
+  /**
+   * One-shot request to open Settings → Providers on the connect form (model
+   * picker "add provider", settings search). The page consumes and clears it;
+   * which provider the page shows is otherwise its own local state.
+   */
+  settingsProvidersConnectRequested: boolean;
   settingsRemoteInstancesSelectedId: string | null;
   eventStreamStatus: EventStreamStatus;
   eventStreamHint: string | null;
@@ -1097,6 +1103,7 @@ interface UIStore {
   setSettingsPage: (slug: string) => void;
   setSettingsProjectsSelectedId: (projectId: string | null) => void;
   setSettingsProjectPath: (path: string | null) => void;
+  setSettingsProvidersConnectRequested: (requested: boolean) => void;
   setSettingsRemoteInstancesSelectedId: (instanceId: string | null) => void;
   setEventStreamStatus: (status: EventStreamStatus, hint?: string | null) => void;
   setShowReasoningTraces: (value: boolean) => void;
@@ -1290,6 +1297,7 @@ export const useUIStore = create<UIStore>()(
         settingsHasOpenedOnce: false,
         settingsProjectsSelectedId: null,
         settingsProjectPath: null,
+        settingsProvidersConnectRequested: false,
         settingsRemoteInstancesSelectedId: null,
         eventStreamStatus: 'idle',
         eventStreamHint: null,
@@ -2109,6 +2117,10 @@ export const useUIStore = create<UIStore>()(
 
         setSettingsPage: (slug) => {
           set({ settingsPage: slug });
+        },
+
+        setSettingsProvidersConnectRequested: (requested) => {
+          set({ settingsProvidersConnectRequested: requested });
         },
 
         setSettingsProjectPath: (path) => {
