@@ -194,6 +194,8 @@ export type ShellMessage = MessageBase & {
   command: string
   status: "running" | "exited" | "timeout" | "killed"
   exit?: number
+  /** Signal that killed the command; live events only, OpenCode does not persist it. */
+  signal?: string
   output?: { output: string; cursor: number; size: number; truncated: boolean }
 }
 

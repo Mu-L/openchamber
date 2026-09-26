@@ -82,7 +82,11 @@ const toShellToolPart = (message: Extract<Message, { role: 'shell' }>): ToolPart
     const start = message.time.created;
     const end = message.time.completed ?? start;
     const output = message.output?.output ?? '';
-    const failed = message.status === 'killed' || message.status === 'timeout' || (message.exit !== undefined && message.exit !== 0);
+    // A command killed by a signal ends as "exited" with no exit code; the signal is what marks it failed.
+    const failed = message.status === 'killed'
+        || message.status === 'timeout'
+        || message.signal !== undefined
+        || (message.exit !== undefined && message.exit !== 0);
     const base = {
         id: `${message.id}:shell`,
         sessionID: message.sessionID,
@@ -95,7 +99,8 @@ const toShellToolPart = (message: Extract<Message, { role: 'shell' }>): ToolPart
         return { ...base, state: { status: 'running', input, metadata: { output }, time: { start } } };
     }
     if (failed) {
-        const reason = message.exit !== undefined ? `${message.status} (${message.exit})` : message.status;
+        const detail = message.signal ?? message.exit;
+        const reason = detail !== undefined ? `${message.status} (${detail})` : message.status;
         return { ...base, state: { status: 'error', input, error: reason, output, time: { start, end } } };
     }
     return { ...base, state: { status: 'completed', input, output, time: { start, end } } };
